@@ -1,7 +1,4 @@
-//#![feature(proc_macro_quote)]
-
-//use std::str::FromStr;
-
+#![feature(thread_local)]
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 
 #[proc_macro_attribute]
@@ -20,8 +17,11 @@ fn allow() -> TokenTree {
     TokenTree::Ident(Ident::new("allow", Span::call_site()))
 }
 
+#[thread_local]
+static HASH: TokenStream = hash();
+
 thread_local! {
-    static HASH: TokenStream = hash();
+    //static HASH: TokenStream = hash();
     static ALLOW: TokenTree = allow();
 }
 
@@ -58,6 +58,7 @@ pub fn unused(given_attrs: TokenStream, item: TokenStream) -> TokenStream {
         allow_unused,
     )));
 
-    TokenStream::from_iter([HASH.with(Clone::clone), squared, item])
+    //TokenStream::from_iter([HASH.with(Clone::clone), squared, item])
+    TokenStream::from_iter([HASH.clone(), squared, item])
     //TokenStream::from_iter([hash, squared, item])
 }
