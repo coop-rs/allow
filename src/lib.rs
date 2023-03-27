@@ -40,9 +40,9 @@ pub fn unused(given_attrs: TokenStream, item: TokenStream) -> TokenStream {
     // The string source for `attrs` is  internal, hence well formed.
     //let attrs = TokenStream::from_str("#[allow(unused)]").unwrap();
 
-    let hash_local = TokenStream::from(TokenTree::Punct(Punct::new('#', Spacing::Alone)));
+    let hash = TokenStream::from(TokenTree::Punct(Punct::new('#', Spacing::Alone)));
 
-    let allow_local = TokenTree::Ident(Ident::new("allow", Span::call_site()));
+    let allow = TokenTree::Ident(Ident::new("allow", Span::call_site()));
 
     // BEWARE: If the lint name doesn't exist, then even if the consumer code uses
     // `#[deny(unknown_lints)]`, that (incorrect lint name) will NOT get reported.
@@ -50,14 +50,14 @@ pub fn unused(given_attrs: TokenStream, item: TokenStream) -> TokenStream {
         TokenStream::from(TokenTree::Ident(Ident::new("unused", Span::call_site())));
     let parented_unused = TokenTree::Group(Group::new(Delimiter::Parenthesis, unused_as_stream));
 
-    //let allow_unused = ALLOW.with(|allow| TokenStream::from_iter([allow.clone(), parented_unused]));
-    let allow_unused = TokenStream::from_iter([allow_local, parented_unused]);
+    let allow_unused = TokenStream::from_iter([ALLOW.with(Clone::clone), parented_unused]);
+    //let allow_unused = TokenStream::from_iter([allow, parented_unused]);
 
     let squared = TokenStream::from(TokenTree::Group(Group::new(
         Delimiter::Bracket,
         allow_unused,
     )));
 
-    HASH.with(|hash| TokenStream::from_iter([hash.clone(), squared, item]))
-    //TokenStream::from_iter([hash_local, squared, item])
+    TokenStream::from_iter([HASH.with(Clone::clone), squared, item])
+    //TokenStream::from_iter([hash, squared, item])
 }
