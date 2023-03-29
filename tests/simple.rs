@@ -24,9 +24,23 @@ fn test_unused() {
     _unused();
 }
 
+// The following two together have triggered an ICE.
+#[allows::unused]
+//#[allows::unused_braces]
+
+// The following two together trigger an ICE.
+// #[allows::array_into_iter]
+// #[allows::clippy_assign_ops]
+
+//#[allows::clippy_almost_swapped] // <--- problem
+
+// Repeating the same fails, too - with #[thread_local]
+#[allows::clippy_assign_ops]
+//#[allows::clippy_assign_ops]
+
+// Repeating the same fails, too - with #[thread_local]
 //#[allows::unused]
-//#[allows::clippy_almost_swapped]
-#[allows::unused_braces]
+//#[allows::unused]
 fn _unused() {
     let unused = ();
 }

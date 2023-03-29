@@ -1,12 +1,17 @@
 #![feature(thread_local, local_key_cell_methods, option_get_or_insert_default)]
 #![deny(unknown_lints)]
 
-use allows_internals::{generate_allows_attribute_macro_definition, token_stream_to_str_literal};
+use allows_internals::{
+    generate_allows_attribute_macro_definition,
+    generate_allows_attribute_macro_definition_prefixed,
+    generate_allows_attribute_macro_definition_standard,
+};
 use once_cell::unsync::OnceCell;
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
+const USE_ANY_THREAD_LOCAL_CACHE: bool = false;
 const USE_ATTRIB: bool = true;
 
 type LintsMap = HashMap<&'static str, TokenStream>;
@@ -19,13 +24,25 @@ type LintsMap = HashMap<&'static str, TokenStream>;
 #[thread_local]
 static HASH_ATTRIB: OnceCell<TokenStream> = OnceCell::new();
 #[thread_local]
+static COLON_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
+// If we ever have more tool prefixes than `clippy` and `rustdoc`, we may want to replace
+// CLIPPY_ATTRIB and RUSTDOC_ATRRIB with a `Vec` or a `HashMap`.
+#[thread_local]
+static CLIPPY_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
+#[thread_local]
+static RUSTDOC_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
+#[thread_local]
 static ALLOW_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
+
 #[thread_local]
 static LINTS_ATTRIB: RefCell<Option<LintsMap>> = RefCell::new(None);
 
 thread_local! {
     // Read-only.
     static HASH_MACROED: TokenStream = generate_hash();
+    static COLON_MACROED: TokenTree = generate_colon();
+    static CLIPPY_MACROED: TokenTree = generate_clippy();
+    static RUSTDOC_MACROED: TokenTree = generate_rustdoc();
     static ALLOW_MACROED: TokenTree = generate_allow();
 
     /// A map: lint name => token stream for: [allow(...)]. Read-write.
@@ -35,18 +52,62 @@ thread_local! {
 // Get the relevant parts from thread local storage (if enabled, and if stored already). Generate
 // otherwise (and also put in thread local storage, if enabled). Then `.clone()` and return.
 fn get_hash() -> TokenStream {
-    if USE_ATTRIB {
-        HASH_ATTRIB.get_or_init(generate_hash).clone()
+    if USE_ANY_THREAD_LOCAL_CACHE {
+        if USE_ATTRIB {
+            HASH_ATTRIB.get_or_init(generate_hash).clone()
+        } else {
+            HASH_MACROED.with(Clone::clone)
+        }
     } else {
-        HASH_MACROED.with(Clone::clone)
+        generate_hash()
+    }
+}
+
+fn get_colon() -> TokenTree {
+    if USE_ANY_THREAD_LOCAL_CACHE {
+        if USE_ATTRIB {
+            COLON_ATTRIB.get_or_init(generate_colon).clone()
+        } else {
+            COLON_MACROED.with(Clone::clone)
+        }
+    } else {
+        generate_colon()
+    }
+}
+
+fn get_clippy() -> TokenTree {
+    if USE_ANY_THREAD_LOCAL_CACHE {
+        if USE_ATTRIB {
+            CLIPPY_ATTRIB.get_or_init(generate_clippy).clone()
+        } else {
+            CLIPPY_MACROED.with(Clone::clone)
+        }
+    } else {
+        generate_clippy()
+    }
+}
+
+fn get_rustdoc() -> TokenTree {
+    if USE_ANY_THREAD_LOCAL_CACHE {
+        if USE_ATTRIB {
+            RUSTDOC_ATTRIB.get_or_init(generate_rustdoc).clone()
+        } else {
+            RUSTDOC_MACROED.with(Clone::clone)
+        }
+    } else {
+        generate_rustdoc()
     }
 }
 
 fn get_allow() -> TokenTree {
-    if USE_ATTRIB {
-        ALLOW_ATTRIB.get_or_init(generate_allow).clone()
+    if USE_ANY_THREAD_LOCAL_CACHE {
+        if USE_ATTRIB {
+            ALLOW_ATTRIB.get_or_init(generate_allow).clone()
+        } else {
+            ALLOW_MACROED.with(Clone::clone)
+        }
     } else {
-        ALLOW_MACROED.with(Clone::clone)
+        generate_allow()
     }
 }
 
@@ -58,7 +119,19 @@ fn get_allow() -> TokenTree {
 
 /// Generate [`TokenStream`] consisting of one hash character: `#`. It serves as the leading character of the injected code (just left of the injected "[allow(...)]").
 fn generate_hash() -> TokenStream {
-    TokenStream::from(TokenTree::Punct(Punct::new('#', Spacing::Alone)))
+    TokenStream::from(TokenTree::Punct(Punct::new('#', Spacing::Joint)))
+}
+
+fn generate_colon() -> TokenTree {
+    TokenTree::Punct(Punct::new(':', Spacing::Joint))
+}
+
+fn generate_clippy() -> TokenTree {
+    TokenTree::Ident(Ident::new("clippy", Span::call_site()))
+}
+
+fn generate_rustdoc() -> TokenTree {
+    TokenTree::Ident(Ident::new("rustdoc", Span::call_site()))
 }
 
 /// Generate [`TokenTree`] consisting of one identifier: `allow`.
@@ -67,34 +140,65 @@ fn generate_allow() -> TokenTree {
 }
 // -----
 
-fn with_lints_squared<F>(f: F) -> TokenStream
+fn with_lints<F>(f: F) -> TokenStream
 where
-    F: FnOnce(&mut HashMap<&'static str, TokenStream>) -> TokenStream,
+    F: FnOnce(&mut LintsMap) -> TokenStream,
 {
-    if USE_ATTRIB {
-        let mut lints = LINTS_ATTRIB.borrow_mut();
-        f(lints.get_or_insert_default())
+    if USE_ANY_THREAD_LOCAL_CACHE {
+        if USE_ATTRIB {
+            let mut lints = LINTS_ATTRIB.borrow_mut();
+            f(lints.get_or_insert_default())
+        } else {
+            LINTS_MACROED.with_borrow_mut(|lints| f(lints))
+        }
     } else {
-        LINTS_MACROED.with_borrow_mut(|lints| f(lints))
+        let mut lints = LintsMap::with_capacity(1);
+        f(&mut lints)
     }
 }
 
+/// Param `lint_path` is NOT an &str of proc macro representation of macro_rules! type `path` -
+/// because such a proc macro representation is a Group of Ident, and when transformed by
+/// `to_string()` (`or format!(...)`), it gets one space inserted on each side of `::`.
+///
+/// Instead, `lint_path` contains no spaces. For example: `clippy::all`.
+///
+/// For our purpose only. (It can contain only one pair of colons `::`, and NOT at the very
+/// beginning.)
 fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
-    with_lints_squared(|lints| {
+    with_lints(|lints| {
         let entry = lints.entry(lint_path);
         entry
             .or_insert_with(|| {
-                // TODO: NOT an Ident, but split!
-                let lint_name =
-                    TokenStream::from(TokenTree::Ident(Ident::new(lint_path, Span::call_site())));
-                let parens_lint_name =
-                    TokenTree::Group(Group::new(Delimiter::Parenthesis, lint_name));
+                let (prefix_str, lint_str) = match lint_path.find(':') {
+                    Some(colon_index) => (&lint_path[..colon_index], &lint_path[colon_index + 2..]),
+                    None => ("", &lint_path[..]),
+                };
 
-                let allow_lint_name = TokenStream::from_iter([get_allow(), parens_lint_name]);
+                let prefix_lint = {
+                    let lint = TokenTree::Ident(Ident::new(lint_str, Span::call_site()));
+                    if prefix_str.is_empty() {
+                        TokenStream::from_iter([lint])
+                    } else {
+                        let prefix = match prefix_str {
+                            "clippy" => get_clippy(),
+                            "rustdoc" => get_rustdoc(),
+                            _ => panic!("Unsupported prefix: {prefix_str}."),
+                        };
+                        let colon = get_colon();
+                        TokenStream::from_iter([prefix, colon.clone(), colon, lint])
+                    }
+                };
+
+                let parens_prefix_lint =
+                    TokenTree::Group(Group::new(Delimiter::Parenthesis, prefix_lint));
+
+                let allow_parens_prefix_lint =
+                    TokenStream::from_iter([get_allow(), parens_prefix_lint]);
 
                 TokenStream::from(TokenTree::Group(Group::new(
                     Delimiter::Bracket,
-                    allow_lint_name,
+                    allow_parens_prefix_lint,
                 )))
             })
             .clone()
@@ -125,7 +229,7 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
             // The following is why we have #![deny(unknown_lints)] for this file.
             #[cfg(test)]
             #[allow($lint_path)]
-            fn _check_the_lint_is_valid() {}
+            fn _compile_time_check_the_lint_is_valid() {}
 
             assert!(
                 given_attrs.is_empty(),
@@ -145,11 +249,19 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
 
 // @TODO
 macro_rules! standard_lints {
-    () => {};
+    ($( $lint_name:ident ),*) => {
+        $(
+            generate_allows_attribute_macro_definition_standard!($lint_name);
+        )*
+    };
 }
 
 macro_rules! prefixed_lints {
-    () => {};
+    ($prefix:ident, $( $lint_name:ident ),*) => {
+        $(
+            generate_allows_attribute_macro_definition_prefixed!($prefix, $lint_name);
+        )*
+    };
 }
 
 //-----
@@ -165,3 +277,7 @@ pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
 //#[allow(unused_braces)]
 generate_allows_attribute_macro_definition!(clippy::almost_swapped);
 generate_allows_attribute_macro_definition!(unused_braces);
+
+standard_lints!(array_into_iter);
+//#[allow(clippy::assign_ops)]
+prefixed_lints!(clippy, assign_ops);
