@@ -16,17 +16,15 @@
 ///    (mistaken) `#[deny(...)]`.
 /// 3. The rest of the code will not get that lint checked (of course).
 
-// NO need to mark functions as #[test], since all we check is compilation.
-//#[test]
-#[allows::prefix_attrs_before_item(
-    #[allow(unused)]
-)]
-fn _prefix_attrs_before_item() {
-    let unused = ();
+// NO need to mark functions as `#[test]`, since all we check is compilation.
+// But we do have `#[test]`, for peace of mind.
+
+#[test]
+fn test_unused() {
+    _unused();
 }
 
 #[allows::unused]
 fn _unused() {
-    //#[allow(unused)]
     let unused = ();
 }
