@@ -1,6 +1,6 @@
 #![feature(thread_local, local_key_cell_methods, option_get_or_insert_default)]
 
-use allows_internals::{generate_allows_attribute_macro_definition, path_to_ident_mac};
+use allows_internals::generate_allows_attribute_macro_definition;
 use once_cell::unsync::OnceCell;
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::cell::RefCell;
@@ -126,21 +126,9 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
         }
     };
 }
-//----
-
-macro_rules! generate_allows_attribute_macro_definition_by_example {
-    // Note: Do NOT prefix in the following with `crate::` like:
-    // `crate::generate_allows_attribute_macro_definition_internal!(..);`
-    ( $lint_path:path ) => {
-        generate_allows_attribute_macro_definition_internal!(
-            $lint_path,
-            path_to_ident_mac!($lint_path)
-        );
-    };
-}
-
 // ----
 //
+
 // EXAMPLE Actual macros for public use
 #[proc_macro_attribute]
 pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
@@ -154,7 +142,7 @@ pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
     TokenStream::from_iter([get_hash(), lint_squared("unused"), item])
 }
 
-generate_allows_attribute_macro_definition!(::clippy::almost_swapped);
-generate_allows_attribute_macro_definition_by_example!(::clippy::approx_constant);
+//#[allow(unused_braces)]
+generate_allows_attribute_macro_definition!(clippy::almost_swapped);
+generate_allows_attribute_macro_definition!(unused_braces);
 
-//generate_allows_attribute_macro_definition_internal!(clippy::almost_swapped, clippy_almost_swapped);
