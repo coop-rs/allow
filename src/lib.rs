@@ -1,6 +1,7 @@
 #![feature(thread_local, local_key_cell_methods, option_get_or_insert_default)]
+#![deny(unknown_lints)]
 
-use allows_internals::generate_allows_attribute_macro_definition;
+use allows_internals::{generate_allows_attribute_macro_definition, token_stream_to_str_literal};
 use once_cell::unsync::OnceCell;
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::cell::RefCell;
@@ -78,19 +79,18 @@ where
     }
 }
 
-fn lint_squared(given_lint_name: &'static str) -> TokenStream {
+fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
     with_lints_squared(|lints| {
-        let entry = lints.entry(given_lint_name);
+        let entry = lints.entry(lint_path);
         entry
             .or_insert_with(|| {
-                let lint_name = TokenStream::from(TokenTree::Ident(Ident::new(
-                    given_lint_name,
-                    Span::call_site(),
-                )));
-                let parented_lint_name =
+                // TODO: NOT an Ident, but split!
+                let lint_name =
+                    TokenStream::from(TokenTree::Ident(Ident::new(lint_path, Span::call_site())));
+                let parens_lint_name =
                     TokenTree::Group(Group::new(Delimiter::Parenthesis, lint_name));
 
-                let allow_lint_name = TokenStream::from_iter([get_allow(), parented_lint_name]);
+                let allow_lint_name = TokenStream::from_iter([get_allow(), parens_lint_name]);
 
                 TokenStream::from(TokenTree::Group(Group::new(
                     Delimiter::Bracket,
@@ -103,46 +103,65 @@ fn lint_squared(given_lint_name: &'static str) -> TokenStream {
 
 // cfg(target_thread_local)
 
-/// NOT for public use. "Used" only by [`allows_internals::generate_allows_attribute_macro_definition`] macro. [`allows_internals::generate_allows_attribute_macro_definition`] doesn't invoke this, but it generates code that invokes it.
+/// NOT for public use. "Used" only by
+/// [`allows_internals::generate_allows_attribute_macro_definition`] macro.
+/// [`allows_internals::generate_allows_attribute_macro_definition`] doesn't invoke this, but it
+/// generates code that invokes it.
 ///
 /// Define a `proc` macro to allow the given lint. The proc macro will have the same name as the
 /// given `lint_name`, except that any package-like separators (pairs of colons) :: are replaced
 /// with an underscore _.
 ///
 /// BEWARE: If the lint name doesn't exist, then even if the consumer code uses
-/// `#[deny(unknown_lints)]`, that (incorrect lint name) will NOT get reported.
+/// `#[deny(unknown_lints)]`, if we generate its usage from our macro, that (incorrect lint name)
+/// would NOT get reported. That's why _check_the_lint_is_valid() below.
 macro_rules! generate_allows_attribute_macro_definition_internal {
     ( $lint_path:path, $new_macro_name:ident ) => {
         #[proc_macro_attribute]
         pub fn $new_macro_name(
-            _given_attrs: ::proc_macro::TokenStream,
+            given_attrs: ::proc_macro::TokenStream,
             item: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
+            // The following is why we have #![deny(unknown_lints)] for this file.
+            #[cfg(test)]
+            #[allow($lint_path)]
+            fn _check_the_lint_is_valid() {}
+
+            assert!(
+                given_attrs.is_empty(),
+                "Do not pass any attribute parameters."
+            );
             ::proc_macro::TokenStream::from_iter([
                 $crate::get_hash(),
-                $crate::lint_squared("$lint_path"),
+                $crate::brackets_allow_lint(allows_internals::token_stream_to_str_literal!(
+                    $lint_path
+                )),
                 item,
             ])
         }
     };
 }
 // ----
-//
+
+// @TODO
+macro_rules! standard_lints {
+    () => {};
+}
+
+macro_rules! prefixed_lints {
+    () => {};
+}
+
+//-----
 
 // EXAMPLE Actual macros for public use
 #[proc_macro_attribute]
 pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
-    // @TODO accept & ignore any given_attrs?
-    // Otherwise refuse them:
-    //assert!(given_attrs.is_empty(), "This #[allow::] must have no extra tokens.");
-
     // The string source for `attrs` is  internal, hence well formed.
     //let attrs = TokenStream::from_str("#[allow(unused)]").unwrap();
-
-    TokenStream::from_iter([get_hash(), lint_squared("unused"), item])
+    TokenStream::from_iter([get_hash(), brackets_allow_lint("unused"), item])
 }
 
 //#[allow(unused_braces)]
 generate_allows_attribute_macro_definition!(clippy::almost_swapped);
 generate_allows_attribute_macro_definition!(unused_braces);
-

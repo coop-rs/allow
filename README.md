@@ -21,7 +21,7 @@ Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking
 - [`#[thread_local]` (attribute) stabilization](https://github.com/rust-lang/rust/issues/29594)
 - [Partial stabilization of once_cell](https://github.com/rust-lang/rust/pull/105587)
 - [standard lazy types](https://github.com/rust-lang/rfcs/pull/2788)
-
+- [`concat_idents`](https://github.com/rust-lang/rust/issues/29599)
 
 # Efficient proc macros
 

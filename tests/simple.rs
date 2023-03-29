@@ -24,7 +24,9 @@ fn test_unused() {
     _unused();
 }
 
-#[allows::unused]
+//#[allows::unused]
+//#[allows::clippy_almost_swapped]
+#[allows::unused_braces]
 fn _unused() {
     let unused = ();
 }
