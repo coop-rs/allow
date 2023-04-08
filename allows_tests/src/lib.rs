@@ -1,5 +1,9 @@
-//#![deny(unknown_lints)]
-//#![deny(unused)]
+#![deny(unknown_lints)]
+
+#[test]
+fn test_unused() {
+    unused();
+}
 
 /// BEWARE: If you forget the exclamation mark, like:
 ///
@@ -19,8 +23,16 @@
 // NO need to mark functions as `#[test]`, since all we check is compilation.
 // But we do have `#[test]`, for peace of mind.
 
-#[test]
-fn test_unused() {
+//#[allow(clippy::oh_dear)]
+#[allows::clippy_clbu]
+pub fn unused() {
+    #![deny(unknown_lints)]
+    #[allows::clippy_clbu]
+    //#[allow(clippy::hohoho)]
+    fn f() {
+        std::hint::black_box(());
+    }
+    f();
     _unused();
 }
 
@@ -29,18 +41,10 @@ fn test_unused() {
 //#[allows::unused_braces]
 
 // The following two together trigger an ICE.
-// #[allows::array_into_iter]
+#[allows::array_into_iter]
 // #[allows::clippy_assign_ops]
 
 //#[allows::clippy_almost_swapped] // <--- problem
-
-// Repeating the same fails, too - with #[thread_local]
 #[allows::clippy_assign_ops]
-//#[allows::clippy_assign_ops]
-
-// Repeating the same fails, too - with #[thread_local]
-//#[allows::unused]
-//#[allows::unused]
-fn _unused() {
-    let unused = ();
-}
+#[allows::clippy_clbu]
+fn _unused() {}

@@ -1,18 +1,15 @@
 #![feature(thread_local, local_key_cell_methods, option_get_or_insert_default)]
 #![deny(unknown_lints)]
 
-use allows_internals::{
-    generate_allows_attribute_macro_definition,
-    generate_allows_attribute_macro_definition_prefixed,
-    generate_allows_attribute_macro_definition_standard,
-};
+#[allow(unused_imports)]
+use allows_internals::generate_allows_attribute_macro_definition_without_check;
 use once_cell::unsync::OnceCell;
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
 const USE_ANY_THREAD_LOCAL_CACHE: bool = false;
-const USE_ATTRIB: bool = true;
+const USE_ATTRIB: bool = false;
 
 type LintsMap = HashMap<&'static str, TokenStream>;
 
@@ -172,7 +169,7 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
             .or_insert_with(|| {
                 let (prefix_str, lint_str) = match lint_path.find(':') {
                     Some(colon_index) => (&lint_path[..colon_index], &lint_path[colon_index + 2..]),
-                    None => ("", &lint_path[..]),
+                    None => ("", lint_path),
                 };
 
                 let prefix_lint = {
@@ -208,9 +205,9 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
 // cfg(target_thread_local)
 
 /// NOT for public use. "Used" only by
-/// [`allows_internals::generate_allows_attribute_macro_definition`] macro.
-/// [`allows_internals::generate_allows_attribute_macro_definition`] doesn't invoke this, but it
-/// generates code that invokes it.
+/// [`allows_internals::generate_allows_attribute_macro_definition_standard`] and
+/// [`allows_internals::generate_allows_attribute_macro_definition_prefixed`] macros. Those macros
+/// don't invoke this, but instead they generate code that invokes it.
 ///
 /// Define a `proc` macro to allow the given lint. The proc macro will have the same name as the
 /// given `lint_name`, except that any package-like separators (pairs of colons) :: are replaced
@@ -219,18 +216,30 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
 /// BEWARE: If the lint name doesn't exist, then even if the consumer code uses
 /// `#[deny(unknown_lints)]`, if we generate its usage from our macro, that (incorrect lint name)
 /// would NOT get reported. That's why _check_the_lint_is_valid() below.
-macro_rules! generate_allows_attribute_macro_definition_internal {
+//#[deny(unknown_lints)]
+#[allow(unused_macros)]
+macro_rules! generate_allows_attribute_macro_definition_without_check_internal {
     ( $lint_path:path, $new_macro_name:ident ) => {
+        #[deny(unknown_lints)]
         #[proc_macro_attribute]
         pub fn $new_macro_name(
             given_attrs: ::proc_macro::TokenStream,
             item: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
+            #![deny(unknown_lints)]
+            // The following DOES get reporting as a wrong lint, but not by `cargo check` etc.
+            // Only by `cargo clippy`.
+            //
+            //#[allow(clippy::hohoho)]
             // The following is why we have #![deny(unknown_lints)] for this file.
-            #[cfg(test)]
+            //#[allow(clippy::bufo_bufo)]
             #[allow($lint_path)]
-            fn _compile_time_check_the_lint_is_valid() {}
+            fn _compile_time_check_the_lint_is_valid() {
+                ::std::hint::black_box(());
+            }
+            _compile_time_check_the_lint_is_valid();
 
+            // @TODO discuss allowing (any well formed) attribute parameters
             assert!(
                 given_attrs.is_empty(),
                 "Do not pass any attribute parameters."
@@ -246,8 +255,7 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
     };
 }
 // ----
-
-// @TODO
+/*
 macro_rules! standard_lints {
     ($( $lint_name:ident ),*) => {
         $(
@@ -264,8 +272,10 @@ macro_rules! prefixed_lints {
     };
 }
 
+standard_lints!(array_into_iter, bu);
+prefixed_lints!(clippy, assign_ops, clbu);
+*/
 //-----
-
 // EXAMPLE Actual macros for public use
 #[proc_macro_attribute]
 pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
@@ -274,10 +284,27 @@ pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
     TokenStream::from_iter([get_hash(), brackets_allow_lint("unused"), item])
 }
 
-//#[allow(unused_braces)]
-generate_allows_attribute_macro_definition!(clippy::almost_swapped);
-generate_allows_attribute_macro_definition!(unused_braces);
+//@TODO:
+generate_allows_attribute_macro_definition_without_check!(clippy::all);
 
-standard_lints!(array_into_iter);
-//#[allow(clippy::assign_ops)]
-prefixed_lints!(clippy, assign_ops);
+// 6, 14
+//clippy :: all
+//0123456789
+
+macro_rules! generate_allows_attribute_macro_definition {
+    ($prefix_and_name: path) => {
+        // The following checks that the lint path is valid.
+        //
+        // We can't repeat a definition of the same function, even if prefixed with an underscore.
+        // But, we can redefine a constant.
+        const _: () = {
+            #[allow($prefix_and_name)]
+            fn _f() {}
+        };
+    };
+}
+
+generate_allows_attribute_macro_definition!(clippy::all);
+// @TODO test that the following fails
+//
+// generate_allows_attribute_macro_definition!(clippy::non_existing_lint);
