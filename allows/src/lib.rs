@@ -2,7 +2,11 @@
 #![deny(unknown_lints)]
 
 #[allow(unused_imports)]
-use allows_internals::generate_allows_attribute_macro_definition_without_check;
+use allows_internals::{
+    generate_allows_attribute_macro_definition,
+    generate_allows_attribute_macro_definition_prefixed,
+    generate_allows_attribute_macro_definition_standard,
+};
 use once_cell::unsync::OnceCell;
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::cell::RefCell;
@@ -187,15 +191,15 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
                     }
                 };
 
-                let parens_prefix_lint =
+                let parens_lint_path =
                     TokenTree::Group(Group::new(Delimiter::Parenthesis, prefix_lint));
 
-                let allow_parens_prefix_lint =
-                    TokenStream::from_iter([get_allow(), parens_prefix_lint]);
+                let allow_parens_lint_path =
+                    TokenStream::from_iter([get_allow(), parens_lint_path]);
 
                 TokenStream::from(TokenTree::Group(Group::new(
                     Delimiter::Bracket,
-                    allow_parens_prefix_lint,
+                    allow_parens_lint_path,
                 )))
             })
             .clone()
@@ -209,16 +213,14 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
 /// [`allows_internals::generate_allows_attribute_macro_definition_prefixed`] macros. Those macros
 /// don't invoke this, but instead they generate code that invokes it.
 ///
-/// Define a `proc` macro to allow the given lint. The proc macro will have the same name as the
-/// given `lint_name`, except that any package-like separators (pairs of colons) :: are replaced
-/// with an underscore _.
+/// This generates a definition of a `proc` attribute macro to allow the given lint. The proc macro
+/// will have the same name as the given `lint_path`, except that any package-like separators (pairs
+/// of colons) :: are replaced with an underscore _.
 ///
-/// BEWARE: If the lint name doesn't exist, then even if the consumer code uses
-/// `#[deny(unknown_lints)]`, if we generate its usage from our macro, that (incorrect lint name)
-/// would NOT get reported. That's why _check_the_lint_is_valid() below.
-//#[deny(unknown_lints)]
+/// Param `lint_path` must NOT contain any whitespace, and it can contain max. one pair of colons
+/// `::` (for `clippy::` or `rustdoc::` lints).
 #[allow(unused_macros)]
-macro_rules! generate_allows_attribute_macro_definition_without_check_internal {
+macro_rules! generate_allows_attribute_macro_definition_internal {
     ( $lint_path:path, $new_macro_name:ident ) => {
         #[deny(unknown_lints)]
         #[proc_macro_attribute]
@@ -227,17 +229,8 @@ macro_rules! generate_allows_attribute_macro_definition_without_check_internal {
             item: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
             #![deny(unknown_lints)]
-            // The following DOES get reporting as a wrong lint, but not by `cargo check` etc.
-            // Only by `cargo clippy`.
-            //
-            //#[allow(clippy::hohoho)]
-            // The following is why we have #![deny(unknown_lints)] for this file.
-            //#[allow(clippy::bufo_bufo)]
             #[allow($lint_path)]
-            fn _compile_time_check_the_lint_is_valid() {
-                ::std::hint::black_box(());
-            }
-            _compile_time_check_the_lint_is_valid();
+            let _checking_the_lint_name_is_valid: ();
 
             // @TODO discuss allowing (any well formed) attribute parameters
             assert!(
@@ -246,16 +239,14 @@ macro_rules! generate_allows_attribute_macro_definition_without_check_internal {
             );
             ::proc_macro::TokenStream::from_iter([
                 $crate::get_hash(),
-                $crate::brackets_allow_lint(allows_internals::token_stream_to_str_literal!(
-                    $lint_path
-                )),
+                // [allow(lint_path_here_unquoted)]
+                $crate::brackets_allow_lint(::allows_internals::path_to_str_literal!($lint_path)),
                 item,
             ])
         }
     };
 }
-// ----
-/*
+
 macro_rules! standard_lints {
     ($( $lint_name:ident ),*) => {
         $(
@@ -263,7 +254,6 @@ macro_rules! standard_lints {
         )*
     };
 }
-
 macro_rules! prefixed_lints {
     ($prefix:ident, $( $lint_name:ident ),*) => {
         $(
@@ -271,40 +261,19 @@ macro_rules! prefixed_lints {
         )*
     };
 }
+// @TODO test that e.g. non_existing_std_lint fails
+standard_lints!(array_into_iter, unused);
 
-standard_lints!(array_into_iter, bu);
+
 prefixed_lints!(clippy, assign_ops, clbu);
-*/
-//-----
-// EXAMPLE Actual macros for public use
-#[proc_macro_attribute]
+
+/*#[proc_macro_attribute] // EXAMPLE Actual macros for public use
 pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
     // The string source for `attrs` is  internal, hence well formed.
     //let attrs = TokenStream::from_str("#[allow(unused)]").unwrap();
     TokenStream::from_iter([get_hash(), brackets_allow_lint("unused"), item])
-}
+}*/
 
-//@TODO:
-generate_allows_attribute_macro_definition_without_check!(clippy::all);
-
-// 6, 14
-//clippy :: all
-//0123456789
-
-macro_rules! generate_allows_attribute_macro_definition {
-    ($prefix_and_name: path) => {
-        // The following checks that the lint path is valid.
-        //
-        // We can't repeat a definition of the same function, even if prefixed with an underscore.
-        // But, we can redefine a constant.
-        const _: () = {
-            #[allow($prefix_and_name)]
-            fn _f() {}
-        };
-    };
-}
-
-generate_allows_attribute_macro_definition!(clippy::all);
-// @TODO test that the following fails
-//
-// generate_allows_attribute_macro_definition!(clippy::non_existing_lint);
+// generate_allows_attribute_macro_definition!(clippy::non_existing_lint); // @TODO
+// test that the following fails
+// generate_allows_attribute_macro_definition!(clippy::all);

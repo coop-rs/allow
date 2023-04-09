@@ -24,10 +24,10 @@ fn test_unused() {
 // But we do have `#[test]`, for peace of mind.
 
 //#[allow(clippy::oh_dear)]
-#[allows::clippy_clbu]
+//#[allows::clippy_clbu]
 pub fn unused() {
     #![deny(unknown_lints)]
-    #[allows::clippy_clbu]
+    //#[allows::clippy_clbu]
     //#[allow(clippy::hohoho)]
     fn f() {
         std::hint::black_box(());
@@ -37,14 +37,15 @@ pub fn unused() {
 }
 
 // The following two together have triggered an ICE.
-#[allows::unused]
+//#[allows::unused]
 //#[allows::unused_braces]
 
 // The following two together trigger an ICE.
 #[allows::array_into_iter]
+
 // #[allows::clippy_assign_ops]
 
 //#[allows::clippy_almost_swapped] // <--- problem
-#[allows::clippy_assign_ops]
-#[allows::clippy_clbu]
+//#[allows::clippy_assign_ops]
+//#[allows::clippy_clbu]
 fn _unused() {}
