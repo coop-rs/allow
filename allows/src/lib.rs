@@ -1,7 +1,6 @@
 #![feature(thread_local, local_key_cell_methods, option_get_or_insert_default)]
 #![deny(unknown_lints)]
 
-#[allow(unused_imports)]
 use allows_internals::{
     generate_allows_attribute_macro_definition,
     generate_allows_attribute_macro_definition_prefixed,
@@ -229,7 +228,8 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
             item: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
             #![deny(unknown_lints)]
-            #[allow($lint_path)]
+            //@TODO uncomment the following - once all fixed:
+            //#[allow($lint_path)]
             let _checking_the_lint_name_is_valid: ();
 
             // @TODO discuss allowing (any well formed) attribute parameters
@@ -262,10 +262,9 @@ macro_rules! prefixed_lints {
     };
 }
 // @TODO test that e.g. non_existing_std_lint fails
-standard_lints!(array_into_iter, unused);
+standard_lints!(array_into_iter, unused, bufo);
 
-
-prefixed_lints!(clippy, assign_ops, clbu);
+prefixed_lints!(clippy, assign_ops);
 
 /*#[proc_macro_attribute] // EXAMPLE Actual macros for public use
 pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {

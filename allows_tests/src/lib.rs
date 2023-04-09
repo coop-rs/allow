@@ -1,5 +1,5 @@
 #![deny(unknown_lints)]
-
+//#[warn(renamed_and_removed_lints)]
 #[test]
 fn test_unused() {
     unused();
@@ -42,6 +42,8 @@ pub fn unused() {
 
 // The following two together trigger an ICE.
 #[allows::array_into_iter]
+#[allows::bufo]
+#[allows::clippy_assign_ops]
 
 // #[allows::clippy_assign_ops]
 
