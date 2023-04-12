@@ -2,7 +2,6 @@
 #![deny(unknown_lints)]
 
 use allows_internals::{
-    generate_allows_attribute_macro_definition,
     generate_allows_attribute_macro_definition_prefixed,
     generate_allows_attribute_macro_definition_standard,
 };
@@ -272,7 +271,3 @@ pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
     //let attrs = TokenStream::from_str("#[allow(unused)]").unwrap();
     TokenStream::from_iter([get_hash(), brackets_allow_lint("unused"), item])
 }*/
-
-// generate_allows_attribute_macro_definition!(clippy::non_existing_lint); // @TODO
-// test that the following fails
-// generate_allows_attribute_macro_definition!(clippy::all);

@@ -51,3 +51,6 @@ pub fn unused() {
 //#[allows::clippy_assign_ops]
 //#[allows::clippy_clbu]
 fn _unused() {}
+
+#[allows::unused]
+fn unused2() {}
