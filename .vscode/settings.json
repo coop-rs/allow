@@ -1,10 +1,13 @@
 {
-    "workbench.colorCustomizations": {
-        "editor.findMatchBackground": "#00FF00",
-        "editor.findMatchHighlightBackground": "#008800",
-        "editorRuler.foreground": "#303000",
-        "statusBar.noFolderBackground": "#000000",
-        "statusBar.debuggingBackground": "#000000",
-        "statusBar.debuggingForeground": "#ffffff"
-    }
+    "colorTabs.config": [
+        {
+            "regex": "allows/.*"
+        },
+        {
+            "regex": "allows_internals/.*"
+        },
+        {
+            "regex": "allows_tests/.*"
+        }
+    ]
 }
