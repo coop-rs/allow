@@ -220,25 +220,17 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
 #[allow(unused_macros)]
 macro_rules! generate_allows_attribute_macro_definition_internal {
     ( $lint_path:path, $new_macro_name:ident ) => {
-        #[deny(unknown_lints)]
         #[proc_macro_attribute]
         pub fn $new_macro_name(
             given_attrs: ::proc_macro::TokenStream,
             item: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
-            #![deny(unknown_lints)]
-            //@TODO uncomment the following - once all fixed:
-            //#[allow($lint_path)]
-            let _checking_the_lint_name_is_valid: ();
-
-            // @TODO discuss allowing (any well formed) attribute parameters
             assert!(
                 given_attrs.is_empty(),
                 "Do not pass any attribute parameters."
             );
             ::proc_macro::TokenStream::from_iter([
                 $crate::get_hash(),
-                // [allow(lint_path_here_unquoted)]
                 $crate::brackets_allow_lint(::allows_internals::path_to_str_literal!($lint_path)),
                 item,
             ])
@@ -246,28 +238,28 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
     };
 }
 
-macro_rules! standard_lints {
-    ($( $lint_name:ident ),*) => {
-        $(
-            generate_allows_attribute_macro_definition_standard!($lint_name);
-        )*
+macro_rules! standard_lint {
+    // the `const _` is to check that the lint name is valid
+    ($lint_name:ident) => {
+        #[deny(unknown_lints)]
+        #[allow($lint_name)]
+        const _: () = ();
+        generate_allows_attribute_macro_definition_standard!($lint_name);
     };
 }
-macro_rules! prefixed_lints {
-    ($prefix:ident, $( $lint_name:ident ),*) => {
-        $(
-            generate_allows_attribute_macro_definition_prefixed!($prefix, $lint_name);
-        )*
+macro_rules! prefixed_lint {
+    // the `const _` is to check that the lint name is valid
+    ($lint_path:path) => {
+        #[deny(unknown_lints)]
+        #[allow($lint_path)]
+        const _: () = ();
+        generate_allows_attribute_macro_definition_prefixed!($lint_path);
     };
 }
 // @TODO test that e.g. non_existing_std_lint fails
-standard_lints!(array_into_iter, unused, bufo);
+standard_lint!(array_into_iter);
+standard_lint!(unused);
+//standard_lint!(bufo);
 
-prefixed_lints!(clippy, assign_ops);
-
-/*#[proc_macro_attribute] // EXAMPLE Actual macros for public use
-pub fn unused(_given_attrs: TokenStream, item: TokenStream) -> TokenStream {
-    // The string source for `attrs` is  internal, hence well formed.
-    //let attrs = TokenStream::from_str("#[allow(unused)]").unwrap();
-    TokenStream::from_iter([get_hash(), brackets_allow_lint("unused"), item])
-}*/
+prefixed_lint!(clippy::assign_ops);
+prefixed_lint!(clippy::WRONG_LINT);

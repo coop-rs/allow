@@ -20,8 +20,8 @@ fn test_unused() {
 ///    (mistaken) `#[deny(...)]`.
 /// 3. The rest of the code will not get that lint checked (of course).
 
-// NO need to mark functions as `#[test]`, since all we check is compilation.
-// But we do have `#[test]`, for peace of mind.
+// NO need to mark functions as `#[test]`, since all we check is compilation. But we do invoke it
+// from a (separate) `#[test]` function, for peace of mind.
 
 //#[allow(clippy::oh_dear)]
 //#[allows::clippy_clbu]
@@ -42,7 +42,7 @@ pub fn unused() {
 
 // The following two together trigger an ICE.
 #[allows::array_into_iter]
-#[allows::bufo]
+//#[allows::bufo]
 #[allows::clippy_assign_ops]
 
 // #[allows::clippy_assign_ops]
