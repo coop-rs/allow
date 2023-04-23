@@ -1,4 +1,5 @@
 /target
 /Cargo.lock
-allows_internals/target
-allows_internals/Cargo.lock
+/allows_internals/target
+/allows_internals/Cargo.lock
+/.vscode/settings.json
