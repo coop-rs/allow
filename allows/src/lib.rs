@@ -1,162 +1,36 @@
-#![feature(thread_local, local_key_cell_methods, option_get_or_insert_default)]
 #![deny(unknown_lints)]
 
 use allows_internals::{
     generate_allows_attribute_macro_definition_prefixed,
     generate_allows_attribute_macro_definition_standard,
 };
-use once_cell::unsync::OnceCell;
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
-use std::cell::RefCell;
-use std::collections::HashMap;
 
-const USE_ANY_THREAD_LOCAL_CACHE: bool = false;
-const USE_ATTRIB: bool = false;
-
-type LintsMap = HashMap<&'static str, TokenStream>;
-
-// `#[thread_local] static ONE: TokenStream = TokenStream::from(...)`
-//
-// failed, and rustc was suggesting `Lazy::new(...)`. However, that would involve a Mutex.
-//
-// See https://docs.rs/once_cell/latest/once_cell/unsync/struct.OnceCell.html
-#[thread_local]
-static HASH_ATTRIB: OnceCell<TokenStream> = OnceCell::new();
-#[thread_local]
-static COLON_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
-// If we ever have more tool prefixes than `clippy` and `rustdoc`, we may want to replace
-// CLIPPY_ATTRIB and RUSTDOC_ATRRIB with a `Vec` or a `HashMap`.
-#[thread_local]
-static CLIPPY_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
-#[thread_local]
-static RUSTDOC_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
-#[thread_local]
-static ALLOW_ATTRIB: OnceCell<TokenTree> = OnceCell::new();
-
-#[thread_local]
-static LINTS_ATTRIB: RefCell<Option<LintsMap>> = RefCell::new(None);
-
-thread_local! {
-    // Read-only.
-    static HASH_MACROED: TokenStream = generate_hash();
-    static COLON_MACROED: TokenTree = generate_colon();
-    static CLIPPY_MACROED: TokenTree = generate_clippy();
-    static RUSTDOC_MACROED: TokenTree = generate_rustdoc();
-    static ALLOW_MACROED: TokenTree = generate_allow();
-
-    /// A map: lint name => token stream for: [allow(...)]. Read-write.
-    static LINTS_MACROED: RefCell<LintsMap> = RefCell::new(LintsMap::new());
-}
-
-// Get the relevant parts from thread local storage (if enabled, and if stored already). Generate
-// otherwise (and also put in thread local storage, if enabled). Then `.clone()` and return.
+/// [`TokenStream`] consisting of one hash character: `#`. It serves as the leading character of
+/// the injected code (just left of the injected "[allow(...)]").
 fn get_hash() -> TokenStream {
-    if USE_ANY_THREAD_LOCAL_CACHE {
-        if USE_ATTRIB {
-            HASH_ATTRIB.get_or_init(generate_hash).clone()
-        } else {
-            HASH_MACROED.with(Clone::clone)
-        }
-    } else {
-        generate_hash()
-    }
-}
-
-fn get_colon() -> TokenTree {
-    if USE_ANY_THREAD_LOCAL_CACHE {
-        if USE_ATTRIB {
-            COLON_ATTRIB.get_or_init(generate_colon).clone()
-        } else {
-            COLON_MACROED.with(Clone::clone)
-        }
-    } else {
-        generate_colon()
-    }
-}
-
-fn get_clippy() -> TokenTree {
-    if USE_ANY_THREAD_LOCAL_CACHE {
-        if USE_ATTRIB {
-            CLIPPY_ATTRIB.get_or_init(generate_clippy).clone()
-        } else {
-            CLIPPY_MACROED.with(Clone::clone)
-        }
-    } else {
-        generate_clippy()
-    }
-}
-
-fn get_rustdoc() -> TokenTree {
-    if USE_ANY_THREAD_LOCAL_CACHE {
-        if USE_ATTRIB {
-            RUSTDOC_ATTRIB.get_or_init(generate_rustdoc).clone()
-        } else {
-            RUSTDOC_MACROED.with(Clone::clone)
-        }
-    } else {
-        generate_rustdoc()
-    }
-}
-
-fn get_allow() -> TokenTree {
-    if USE_ANY_THREAD_LOCAL_CACHE {
-        if USE_ATTRIB {
-            ALLOW_ATTRIB.get_or_init(generate_allow).clone()
-        } else {
-            ALLOW_MACROED.with(Clone::clone)
-        }
-    } else {
-        generate_allow()
-    }
-}
-
-//-----
-//
-// Generate the parts (but re-using other parts if stored in thread local already).
-//
-// Independent of thread local storage.
-
-/// Generate [`TokenStream`] consisting of one hash character: `#`. It serves as the leading character of the injected code (just left of the injected "[allow(...)]").
-fn generate_hash() -> TokenStream {
     TokenStream::from(TokenTree::Punct(Punct::new('#', Spacing::Joint)))
 }
 
-fn generate_colon() -> TokenTree {
+fn get_colon() -> TokenTree {
     TokenTree::Punct(Punct::new(':', Spacing::Joint))
 }
 
-fn generate_clippy() -> TokenTree {
+fn get_clippy() -> TokenTree {
     TokenTree::Ident(Ident::new("clippy", Span::call_site()))
 }
 
-fn generate_rustdoc() -> TokenTree {
+fn get_rustdoc() -> TokenTree {
     TokenTree::Ident(Ident::new("rustdoc", Span::call_site()))
 }
 
-/// Generate [`TokenTree`] consisting of one identifier: `allow`.
-fn generate_allow() -> TokenTree {
+/// [`TokenTree`] consisting of one identifier: `allow`.
+fn get_allow() -> TokenTree {
     TokenTree::Ident(Ident::new("allow", Span::call_site()))
 }
 // -----
 
-fn with_lints<F>(f: F) -> TokenStream
-where
-    F: FnOnce(&mut LintsMap) -> TokenStream,
-{
-    if USE_ANY_THREAD_LOCAL_CACHE {
-        if USE_ATTRIB {
-            let mut lints = LINTS_ATTRIB.borrow_mut();
-            f(lints.get_or_insert_default())
-        } else {
-            LINTS_MACROED.with_borrow_mut(|lints| f(lints))
-        }
-    } else {
-        let mut lints = LintsMap::with_capacity(1);
-        f(&mut lints)
-    }
-}
-
-/// Param `lint_path` is NOT an &str of proc macro representation of macro_rules! type `path` -
+/// Param `lint_path` is NOT an &str of proc macro representation of `macro_rules!` type `path` -
 /// because such a proc macro representation is a Group of Ident, and when transformed by
 /// `to_string()` (`or format!(...)`), it gets one space inserted on each side of `::`.
 ///
@@ -165,43 +39,34 @@ where
 /// For our purpose only. (It can contain only one pair of colons `::`, and NOT at the very
 /// beginning.)
 fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
-    with_lints(|lints| {
-        let entry = lints.entry(lint_path);
-        entry
-            .or_insert_with(|| {
-                let (prefix_str, lint_str) = match lint_path.find(':') {
-                    Some(colon_index) => (&lint_path[..colon_index], &lint_path[colon_index + 2..]),
-                    None => ("", lint_path),
-                };
+    let (prefix_str, lint_str) = match lint_path.find(':') {
+        Some(colon_index) => (&lint_path[..colon_index], &lint_path[colon_index + 2..]),
+        None => ("", lint_path),
+    };
 
-                let prefix_lint = {
-                    let lint = TokenTree::Ident(Ident::new(lint_str, Span::call_site()));
-                    if prefix_str.is_empty() {
-                        TokenStream::from_iter([lint])
-                    } else {
-                        let prefix = match prefix_str {
-                            "clippy" => get_clippy(),
-                            "rustdoc" => get_rustdoc(),
-                            _ => panic!("Unsupported prefix: {prefix_str}."),
-                        };
-                        let colon = get_colon();
-                        TokenStream::from_iter([prefix, colon.clone(), colon, lint])
-                    }
-                };
+    let prefix_lint = {
+        let lint = TokenTree::Ident(Ident::new(lint_str, Span::call_site()));
+        if prefix_str.is_empty() {
+            TokenStream::from_iter([lint])
+        } else {
+            let prefix = match prefix_str {
+                "clippy" => get_clippy(),
+                "rustdoc" => get_rustdoc(),
+                _ => panic!("Unsupported prefix: {prefix_str}."),
+            };
+            let colon = get_colon();
+            TokenStream::from_iter([prefix, colon.clone(), colon, lint])
+        }
+    };
 
-                let parens_lint_path =
-                    TokenTree::Group(Group::new(Delimiter::Parenthesis, prefix_lint));
+    let parens_lint_path = TokenTree::Group(Group::new(Delimiter::Parenthesis, prefix_lint));
 
-                let allow_parens_lint_path =
-                    TokenStream::from_iter([get_allow(), parens_lint_path]);
+    let allow_parens_lint_path = TokenStream::from_iter([get_allow(), parens_lint_path]);
 
-                TokenStream::from(TokenTree::Group(Group::new(
-                    Delimiter::Bracket,
-                    allow_parens_lint_path,
-                )))
-            })
-            .clone()
-    })
+    TokenStream::from(TokenTree::Group(Group::new(
+        Delimiter::Bracket,
+        allow_parens_lint_path,
+    )))
 }
 
 // cfg(target_thread_local)
@@ -259,7 +124,9 @@ macro_rules! prefixed_lint {
 // @TODO test that e.g. non_existing_std_lint fails
 standard_lint!(array_into_iter);
 standard_lint!(unused);
-//standard_lint!(bufo);
+// TODO compile test that the following fails
+//standard_lint!(wrong_lint);
 
 prefixed_lint!(clippy::assign_ops);
+// TODO compile test that the following fails - BUT ONLY with `cargo clippy`
 prefixed_lint!(clippy::WRONG_LINT);
