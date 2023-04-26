@@ -1,9 +1,6 @@
 //! NOT for public use. Only to be used by `allows` crate.
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 
-#[cfg(test)]
-mod test;
-
 #[proc_macro]
 pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
     let mut lint_path_input = lint_path_input.into_iter();

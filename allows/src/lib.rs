@@ -1,10 +1,9 @@
 #![deny(unknown_lints)]
 
-use allows_internals::{
-    generate_allows_attribute_macro_definition_prefixed,
-    generate_allows_attribute_macro_definition_standard,
-};
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
+
+#[macro_use]
+mod wrapper_macros;
 
 /// [`TokenStream`] consisting of one hash character: `#`. It serves as the leading character of
 /// the injected code (just left of the injected "[allow(...)]").
@@ -69,8 +68,6 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
     )))
 }
 
-// cfg(target_thread_local)
-
 /// NOT for public use. "Used" only by
 /// [`allows_internals::generate_allows_attribute_macro_definition_standard`] and
 /// [`allows_internals::generate_allows_attribute_macro_definition_prefixed`] macros. Those macros
@@ -103,24 +100,6 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
     };
 }
 
-macro_rules! standard_lint {
-    // the `const _` is to check that the lint name is valid
-    ($lint_name:ident) => {
-        #[deny(unknown_lints)]
-        #[allow($lint_name)]
-        const _: () = ();
-        generate_allows_attribute_macro_definition_standard!($lint_name);
-    };
-}
-macro_rules! prefixed_lint {
-    // the `const _` is to check that the lint name is valid
-    ($lint_path:path) => {
-        #[deny(unknown_lints)]
-        #[allow($lint_path)]
-        const _: () = ();
-        generate_allows_attribute_macro_definition_prefixed!($lint_path);
-    };
-}
 // @TODO test that e.g. non_existing_std_lint fails
 standard_lint!(array_into_iter);
 standard_lint!(unused);

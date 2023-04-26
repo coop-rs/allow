@@ -7,3 +7,6 @@ edition = "2021"
 
 [dependencies]
 allows = { path = "../allows", version = "0.1.*" }
+
+[dev-dependencies]
+# ui_test = "0.8.*"

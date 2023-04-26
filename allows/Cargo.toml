@@ -2,12 +2,24 @@
 name = "allows"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.63"
 
 [lib]
 proc-macro = true
+test = true     # we have unit tests
+doctest = false # but no doc tests
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# rustversion = "1.0"
+rustversion = "1.0"
 allows_internals = { path = "../allows_internals", version = "0.1.*" }
+
+[dev-dependencies]
+ui_test = "0.8.*"
+colored = "2"
+
+[[test]]
+name = "internal_checks"
+harness = false
