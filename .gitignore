@@ -4,3 +4,4 @@
 /allows_internals/Cargo.lock
 /.vscode/settings.json
 /allows/tests/internal_checks/*/target
+/allows/tests/internal_checks/*/Cargo.lock
