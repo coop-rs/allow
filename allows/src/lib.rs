@@ -1,4 +1,14 @@
 #![deny(unknown_lints)]
+#![cfg_attr(
+    unstable_feature,
+    feature(
+        c_unwind,
+        strict_provenance,
+        multiple_supertrait_upcastable,
+        must_not_suspend,
+        non_exhaustive_omitted_patterns_lint
+    )
+)]
 
 use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, TokenTree};
 
@@ -101,10 +111,150 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
 }
 
 // @TODO test that e.g. non_existing_std_lint fails
-standard_lint!(array_into_iter);
-standard_lint!(unused);
 // TODO compile test that the following fails
 //standard_lint!(wrong_lint);
+
+standard_lint!(absolute_paths_not_starting_with_crate);
+standard_lint!(box_pointers);
+// elided_lifetimes_in_paths is at crate level only
+standard_lint!(explicit_outlives_requirements);
+standard_lint!(ffi_unwind_calls);
+standard_lint!(fuzzy_provenance_casts);
+standard_lint!(keyword_idents);
+standard_lint!(let_underscore_drop);
+standard_lint!(lossy_provenance_casts);
+standard_lint!(macro_use_extern_crate);
+standard_lint!(meta_variable_misuse);
+standard_lint!(missing_abi);
+standard_lint!(missing_copy_implementations);
+standard_lint!(missing_debug_implementations);
+standard_lint!(missing_docs);
+standard_lint!(multiple_supertrait_upcastable);
+standard_lint!(must_not_suspend);
+// non_ascii_idents is at crate level only
+standard_lint!(non_exhaustive_omitted_patterns);
+standard_lint!(noop_method_call);
+standard_lint!(pointer_structural_match);
+standard_lint!(rust_2021_incompatible_closure_captures);
+standard_lint!(rust_2021_incompatible_or_patterns);
+// rust_2021_prefixes_incompatible_syntax is at crate level only
+standard_lint!(rust_2021_prelude_collisions);
+standard_lint!(single_use_lifetimes);
+standard_lint!(trivial_casts);
+standard_lint!(trivial_numeric_casts);
+standard_lint!(unreachable_pub);
+standard_lint!(unsafe_code);
+standard_lint!(unsafe_op_in_unsafe_fn);
+// unstable_features is deprecated
+// unused_crate_dependencies is at crate level only
+standard_lint!(unused_extern_crates);
+standard_lint!(unused_import_braces);
+standard_lint!(unused_lifetimes);
+standard_lint!(unused_macro_rules);
+standard_lint!(unused_qualifications);
+standard_lint!(unused_results);
+standard_lint!(unused_tuple_struct_fields);
+standard_lint!(variant_size_differences);
+
+// Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/warn-by-default.html:
+standard_lint!(ambiguous_glob_reexports);
+standard_lint!(anonymous_parameters);
+standard_lint!(array_into_iter);
+standard_lint!(asm_sub_register);
+standard_lint!(bad_asm_style);
+standard_lint!(bare_trait_objects);
+standard_lint!(break_with_label_and_loop);
+standard_lint!(byte_slice_in_packed_struct_with_derive);
+standard_lint!(clashing_extern_declarations);
+standard_lint!(coherence_leak_check);
+// confusable_idents is at crate level only
+standard_lint!(const_evaluatable_unchecked);
+standard_lint!(const_item_mutation);
+standard_lint!(dead_code);
+/*
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+standard_lint!();
+*/
 
 prefixed_lint!(clippy::assign_ops);
 // TODO compile test that the following fails - BUT ONLY with `cargo clippy`

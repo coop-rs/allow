@@ -16,6 +16,9 @@ doctest = false # but no doc tests
 rustversion = "1.0"
 allows_internals = { path = "../allows_internals", version = "0.1.*" }
 
+[build-dependencies]
+rustversion = "1.0"
+
 [dev-dependencies]
 ui_test = "0.8.*"
 colored = "2"
