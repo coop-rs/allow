@@ -37,13 +37,15 @@ for them at anytime. Your team  could have a prelude-like module exporting the a
 
 ### Out of scope
 
-- crate level-only ("inner") attributes. They don't work with `#[allow(...)]`, but only with
+- Lint groups (like `#[allow(unused)]`). That's contrary to the purpose of this crate: To
+  differentiate between the use cases of the same lint.
+- Crate level-only ("inner") attributes. They don't work with `#[allow(...)]`, but only with
   `#![allow(...)]` and only at crate level. Chances are you don't have many repetitions of these.
   You can give thumbs up to [rust-lang/rust #54726](https://github.com/rust-lang/rust/issues/54726),
   but even once that feature is implemented, top level attributes have to come before an `use`
   aliases, so you ouldn't alias calls to macros generating `#![allow(...)]` anyway - so no semantic
   benefit.
-- `Beta` version of `rustc` specifics (unless you help maintain it).
+- `Beta` version of `rustc` specifics ( it's only for 6 weeks). Or, would you help maintain this?
 - Custom lints (such as [with
 Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking-clippy/)).
 
