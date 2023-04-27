@@ -4,7 +4,7 @@ macro_rules! standard_lint {
         #[deny(unknown_lints)]
         #[allow($lint_name)]
         const _: () = ();
-        ::allows_internals::generate_allows_attribute_macro_definition_standard!($lint_name);
+        ::allow_internal::generate_allow_attribute_macro_definition_standard!($lint_name);
     };
 }
 macro_rules! prefixed_lint {
@@ -14,6 +14,6 @@ macro_rules! prefixed_lint {
         #[deny(unknown_lints)]
         #[allow($lint_path)]
         const _: () = ();
-        ::allows_internals::generate_allows_attribute_macro_definition_prefixed!($lint_path);
+        ::allow_internal::generate_allow_attribute_macro_definition_prefixed!($lint_path);
     };
 }

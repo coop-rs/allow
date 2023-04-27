@@ -1,4 +1,4 @@
-//! NOT for public use. Only to be used by `allows` crate.
+//! NOT for public use. Only to be used by `allow` crate.
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 
 #[proc_macro]
@@ -31,7 +31,7 @@ pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
     TokenStream::from(TokenTree::Literal(Literal::string(&literal)))
 }
 
-fn generate_allows_attribute_macro_definition_from_iter(
+fn generate_allow_attribute_macro_definition_from_iter(
     lint_prefix: Option<Ident>,
     mut lint_name_input: impl Iterator<Item = TokenTree>,
 ) -> TokenStream {
@@ -49,10 +49,10 @@ fn generate_allows_attribute_macro_definition_from_iter(
         lint_name_input.collect::<Vec<_>>()
     );
 
-    // Note: Do NOT prefix the generated Rust invocation (from `allows` itself) in the following
-    // with `crate::` like: `crate::generate_allows_attribute_macro_definition_internal!(...);`
+    // Note: Do NOT prefix the generated Rust invocation (from `allow` itself) in the following
+    // with `crate::` like: `crate::generate_allow_attribute_macro_definition_internal!(...);`
     let generate_internal = TokenTree::Ident(Ident::new(
-        "generate_allows_attribute_macro_definition_internal",
+        "generate_allow_attribute_macro_definition_internal",
         Span::call_site(),
     ));
     let exclamation = TokenTree::Punct(Punct::new('!', Spacing::Joint));
@@ -90,15 +90,15 @@ fn generate_allows_attribute_macro_definition_from_iter(
 }
 
 #[proc_macro]
-pub fn generate_allows_attribute_macro_definition_standard(
+pub fn generate_allow_attribute_macro_definition_standard(
     lint_name_input: TokenStream,
 ) -> TokenStream {
-    generate_allows_attribute_macro_definition_from_iter(None, lint_name_input.into_iter())
+    generate_allow_attribute_macro_definition_from_iter(None, lint_name_input.into_iter())
 }
 
 /// Input: prefix::lint_name
 #[proc_macro]
-pub fn generate_allows_attribute_macro_definition_prefixed(
+pub fn generate_allow_attribute_macro_definition_prefixed(
     lint_path_input: TokenStream,
 ) -> TokenStream {
     let mut lint_path_input = lint_path_input.into_iter();
@@ -142,5 +142,5 @@ pub fn generate_allows_attribute_macro_definition_prefixed(
         );
     });
 
-    generate_allows_attribute_macro_definition_from_iter(Some(prefix), group.into_iter())
+    generate_allow_attribute_macro_definition_from_iter(Some(prefix), group.into_iter())
 }

@@ -1,8 +1,9 @@
 [package]
-name = "allows"
+name = "allow"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.63"
+# NO rust-version here, because that applies only from 1.56. Based on
+# https://github.com/dtolnay/rustversion it seems that we support 1.31+.
 
 [lib]
 proc-macro = true
@@ -14,7 +15,7 @@ doctest = false # but no doc tests
 
 [dependencies]
 rustversion = "1.0"
-allows_internals = { path = "../allows_internals", version = "0.1.*" }
+allow_internal = { path = "../allow_internal", version = "0.1.*" }
 
 [build-dependencies]
 rustversion = "1.0"

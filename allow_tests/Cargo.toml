@@ -1,12 +1,13 @@
 [package]
-name = "allows_tests"
+name = "allow_tests"
 version = "0.1.0"
 edition = "2021"
+rust-version = "1.80"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-allows = { path = "../allows", version = "0.1.*" }
+allow = { path = "../allow", version = "0.1.*" }
 
 [dev-dependencies]
 # ui_test = "0.8.*"

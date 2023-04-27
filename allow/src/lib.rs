@@ -81,8 +81,8 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
 }
 
 /// NOT for public use. "Used" only by
-/// [`allows_internals::generate_allows_attribute_macro_definition_standard`] and
-/// [`allows_internals::generate_allows_attribute_macro_definition_prefixed`] macros. Those macros
+/// [`allow_internal::generate_allow_attribute_macro_definition_standard`] and
+/// [`allow_internal::generate_allow_attribute_macro_definition_prefixed`] macros. Those macros
 /// don't invoke this, but instead they generate code that invokes it.
 ///
 /// This generates a definition of a `proc` attribute macro to allow the given lint. The proc macro
@@ -92,7 +92,7 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
 /// Param `lint_path` must NOT contain any whitespace, and it can contain max. one pair of colons
 /// `::` (for `clippy::` or `rustdoc::` lints).
 #[allow(unused_macros)]
-macro_rules! generate_allows_attribute_macro_definition_internal {
+macro_rules! generate_allow_attribute_macro_definition_internal {
     ( $lint_path:path, $new_macro_name:ident ) => {
         #[proc_macro_attribute]
         pub fn $new_macro_name(
@@ -105,7 +105,7 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
             );
             ::proc_macro::TokenStream::from_iter([
                 $crate::get_hash(),
-                $crate::brackets_allow_lint(::allows_internals::path_to_str_literal!($lint_path)),
+                $crate::brackets_allow_lint(::allow_internal::path_to_str_literal!($lint_path)),
                 item,
             ])
         }
