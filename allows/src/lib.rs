@@ -115,9 +115,6 @@ macro_rules! generate_allows_attribute_macro_definition_internal {
 // @TODO test that e.g. non_existing_std_lint fails TODO compile test that the following fails
 // standard_lint!(wrong_lint);
 
-// "top level" inner attribute can't be generated from macros. Hence, we can't handle crate level
-// lints. Please give thumbs up to https://github.com/rust-lang/rust/issues/54726.
-
 // Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/allowed-by-default.html
 standard_lint!(absolute_paths_not_starting_with_crate);
 standard_lint!(box_pointers);
