@@ -22,7 +22,8 @@ You can import same macros as many times under as many names you need, for examp
 - `use lint_allows::rustdoc_missing_doc_code_examples as examples_none_trivial;`
 
 Then apply #[examples_linked], #[examples_none_trivial], or as you name them, indicating your
-intention.
+intention. (Side not: Handling `rustdoc::` and `clippy::` is not implemented yet. Only standard
+lints for now.)
 
 Side benefit: Rust would validate the (aliased) names, hence no typos - so you can `grep` or search
 for them at anytime. Your team  could have a prelude-like module exporting the aliases.
