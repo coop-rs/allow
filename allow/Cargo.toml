@@ -5,7 +5,19 @@ edition = "2018"
 # Because of https://github.com/dtolnay/rustversion we can't support before 1.31. However, to use
 # `::allow_internal::path_to_str_literal!($lint_path)` we also need proc macros in expression
 # positions: https://github.com/rust-lang/rust/pull/68717. Hence, we require 1.45+.
+#
+# See also ../README.md.
 rust-version = "1.45"
+authors = ["Peter Kehl <peter.kehl@gmail.com>"]
+# TODO development-tools?
+categories = ["development-tools", "rust-patterns"]
+keywords = ["lint", "lints", "linting"]
+description = "Alias/label lints (to disable) with your intentions"
+documentation = "https://docs.rs/allow_internal"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/coop-rs/allow"
+homepage = "https://github.com/coop-rs/allow"
+readme = "../README.md"
 
 [lib]
 proc-macro = true
