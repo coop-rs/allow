@@ -69,7 +69,7 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
             let prefix = match prefix_str {
                 "clippy" => get_clippy(),
                 "rustdoc" => get_rustdoc(),
-                _ => panic!("Unsupported prefix: {prefix_str}."),
+                _ => panic!("Unsupported prefix: {}.", prefix_str),
             };
             let colon = get_colon();
             auxiliary::token_trees_to_stream(&[prefix, colon.clone(), colon, lint])
@@ -170,7 +170,8 @@ standard_lint!(trivial_numeric_casts);
 standard_lint!(unreachable_pub);
 standard_lint!(unsafe_code);
 
-//standard_lint!(unsafe_op_in_unsafe_fn);
+#[rustversion::since(1.52)]
+standard_lint!(unsafe_op_in_unsafe_fn); // According to https://github.com/rust-lang/rust/pull/79208 it was stabilized in 1.52.0
 
 // unstable_features is deprecated unused_crate_dependencies is at crate level only
 standard_lint!(unused_extern_crates);
@@ -323,19 +324,27 @@ standard_lint!(useless_deprecated);
 
 // Based on https://doc.rust-lang.org/nightly/rustdoc/lints.html - in the same order:
 
-// Please advise the earliest Rust version that had `rustdoc::xxx` lints.
-/*
+// According to https://releases.rs/docs/1.52.0/#rustdoc rustdoc:: lints exist since 1.52:
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::broken_intra_doc_links);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::private_intra_doc_links);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::missing_docs);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::missing_crate_level_docs);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::missing_doc_code_examples);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::private_doc_tests);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::invalid_codeblock_attributes);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::invalid_html_tags);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::invalid_rust_codeblocks);
+#[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::bare_urls);
-*/
 
 // Based on https://rust-lang.github.io/rust-clippy/index.html for 1.31 to master:
 

@@ -49,10 +49,12 @@ for them at anytime. Your team  could have a prelude-like module exporting the a
   benefit.
 - `Beta` version of `rustc` specifics. `Beta` version incubation is only for 6 weeks. Or, would you
   help maintain this?
-- Rust older than `1.31`. (That's because we use
-  [`rustversion`](https://crates.io/crates/rustversion) crate.) If you would benefit from `allow`,
-  it's most likely when the lints you are supressing are wide spread. Hence, if you choose to
-  refactor the code, couldn't you as well upgrade it to newer Rust?
+- Rust older than `1.45`. If there is high demand, we could potentially support down to 1.31 (needed
+  by [`rustversion`](https://crates.io/crates/rustversion) crate.) But then we'd have an ugly and
+  more complicated proc macro.
+  
+  If you would benefit from `allow`, it's most likely when the lints you are suppressing are wide
+  spread. Hence, if you choose to refactor the code, couldn't you as well upgrade it to newer Rust?
 - Custom lints (such as [with
 Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking-clippy/)). Possible
 in principle - will you commit to maintain it?

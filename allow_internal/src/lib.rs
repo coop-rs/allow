@@ -32,8 +32,10 @@ fn generate_allow_attribute_macro_definition_from_iter(
     let mut lint_name = lint_name_input.next().unwrap_or_else(|| {
         panic!("Expecting a lint name (Identifier), but reached the end of the input.")
     });
-    // In Rust 1.31.1 `lint_name` here is not `TokenTree::Ident(_)`, but a `Group`.
-    // @TODO TEST and eliminate if not needed
+    // In Rust 1.45.2 and older, `lint_name` here is not `TokenTree::Ident(_)`, but a `Group`
+    // containing `TokenTree::Ident(_)`.
+    //
+    // @TODO If we upgrade min. Rust version, test this and eliminate if not needed anymore.
     match &lint_name {
         TokenTree::Group(group) => {
             lint_name = group
