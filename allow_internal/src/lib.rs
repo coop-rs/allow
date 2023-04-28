@@ -1,9 +1,9 @@
 //! NOT for public use. Only to be used by `allow` crate.
 
-extern crate proc_macro; // TODO remove if we upgrade Rust edition
-
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::iter::FromIterator; // TODO remove if we upgrade Rust edition
+
+mod auxiliary;
 
 #[proc_macro]
 pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
@@ -20,18 +20,8 @@ pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
     );
 
     let lint_path = lint_path.to_string();
-    // Once https://github.com/rust-lang/rust/issues/72826 is stable, use:
-    //
-    // lint_path.remove_matches(char::is_whitespace);
-    //
-    // Or, once https://github.com/rust-lang/rust/issues/94780 is stable, use:
-    //
-    // let literal = String::with_capacity(lint_path.len());
-    // lint_path.chars().filter(|c| *c!=' ').collect_into(&mut literal);
     let literal = lint_path.chars().filter(|c| *c != ' ').collect::<String>();
 
-    //let mut result = Vec::with_capacity(1);
-    //result.push();
     TokenStream::from(TokenTree::Literal(Literal::string(&literal)))
 }
 
@@ -39,17 +29,28 @@ fn generate_allow_attribute_macro_definition_from_iter(
     lint_prefix: Option<Ident>,
     mut lint_name_input: impl Iterator<Item = TokenTree>,
 ) -> TokenStream {
-    let lint_name = lint_name_input.next().unwrap_or_else(|| {
+    let mut lint_name = lint_name_input.next().unwrap_or_else(|| {
         panic!("Expecting a lint name (Identifier), but reached the end of the input.")
     });
-    // @TODO in Rust 1.42: revert to: if !matches!(&lint_name, TokenTree::Ident(_)) {..}
+    // In Rust 1.31.1 `lint_name` here is not `TokenTree::Ident(_)`, but a `Group`.
+    // @TODO TEST and eliminate if not needed
     match &lint_name {
-        TokenTree::Ident(_) => (),
-        _ => panic!(
+        TokenTree::Group(group) => {
+            lint_name = group
+                .stream()
+                .into_iter()
+                .next()
+                .unwrap_or_else(|| panic!("Expecting an Ident in the group."));
+        }
+        _ => (),
+    }
+
+    if !matches!(&lint_name, TokenTree::Ident(_)) {
+        panic!(
             "Expecting a TokenTree::Ident(lint_name), but received {:?}.",
             lint_name
-        ),
-    };
+        )
+    }
 
     let mut lint_name_input = lint_name_input.peekable();
     assert!(
@@ -89,16 +90,14 @@ fn generate_allow_attribute_macro_definition_from_iter(
         Delimiter::Parenthesis,
         TokenStream::from_iter(generate_internal_params),
     ));
-    let tokens_arr = [
+    let tokens = [
         generate_internal,
         exclamation,
         generate_internal_params_parens,
         TokenTree::Punct(Punct::new(';', Spacing::Joint)),
     ];
     // TODO remove if we upgrade Rust min. version, or edition to 2021
-    let mut tokens = Vec::with_capacity(4);
-    tokens.extend_from_slice(&tokens_arr);
-    TokenStream::from_iter(tokens)
+    auxiliary::token_trees_to_stream(&tokens)
     //TokenStream::from_iter(tokens) // use if we upgrade Rust min. version, or edition to 2021
 }
 

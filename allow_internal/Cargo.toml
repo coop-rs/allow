@@ -1,8 +1,8 @@
 [package]
 name = "allow_internal"
 version = "0.1.0"
-# edition = "2021"
 edition = "2018"
+rust-version = "1.45" # See explanation in `allow` crate's Cargo.toml
 authors = ["Peter Kehl <peter.kehl@gmail.com>"]
 # TODO development-tools?
 categories = ["development-tools", "rust-patterns"]

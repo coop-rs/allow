@@ -20,6 +20,8 @@ use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, Tok
 #[macro_use]
 mod wrapper_macros;
 
+mod auxiliary;
+
 /// [`TokenStream`] consisting of one hash character: `#`. It serves as the leading character of the
 /// injected code (just left of the injected "[allow(...)]").
 fn get_hash() -> TokenStream {
@@ -61,7 +63,8 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
     let prefix_lint = {
         let lint = TokenTree::Ident(Ident::new(lint_str, Span::call_site()));
         if prefix_str.is_empty() {
-            TokenStream::from_iter([lint])
+            auxiliary::token_trees_to_stream(&[lint])
+        //TokenStream::from_iter([lint])
         } else {
             let prefix = match prefix_str {
                 "clippy" => get_clippy(),
@@ -69,13 +72,15 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
                 _ => panic!("Unsupported prefix: {prefix_str}."),
             };
             let colon = get_colon();
-            TokenStream::from_iter([prefix, colon.clone(), colon, lint])
+            auxiliary::token_trees_to_stream(&[prefix, colon.clone(), colon, lint])
+            //TokenStream::from_iter([prefix, colon.clone(), colon, lint])
         }
     };
 
     let parens_lint_path = TokenTree::Group(Group::new(Delimiter::Parenthesis, prefix_lint));
 
-    let allow_parens_lint_path = TokenStream::from_iter([get_allow(), parens_lint_path]);
+    let allow_parens_lint_path = auxiliary::token_trees_to_stream(&[get_allow(), parens_lint_path]);
+    //let allow_parens_lint_path = TokenStream::from_iter([get_allow(), parens_lint_path]);
 
     TokenStream::from(TokenTree::Group(Group::new(
         Delimiter::Bracket,
@@ -106,11 +111,18 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
                 given_attrs.is_empty(),
                 "Do not pass any attribute parameters."
             );
-            ::proc_macro::TokenStream::from_iter([
+            // TODO remove if we upgrade Rust min. version, or edition to 2021
+            let tokens = [
                 $crate::get_hash(),
                 $crate::brackets_allow_lint(::allow_internal::path_to_str_literal!($lint_path)),
                 item,
-            ])
+            ];
+            auxiliary::token_streams_to_stream(&tokens)
+            /*::proc_macro::TokenStream::from_iter([
+                $crate::get_hash(),
+                $crate::brackets_allow_lint(::allow_internal::path_to_str_literal!($lint_path)),
+                item,
+            ])*/
         }
     };
 }
@@ -120,7 +132,8 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
 
 // Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/allowed-by-default.html - in the
 // same order:
-standard_lint!(absolute_paths_not_starting_with_crate);
+
+// absolute_paths_not_starting_with_crate was in edition 2015 only (and we required 2018+).
 standard_lint!(box_pointers);
 // elided_lifetimes_in_paths is at crate level only
 standard_lint!(explicit_outlives_requirements);
@@ -156,7 +169,9 @@ standard_lint!(trivial_casts);
 standard_lint!(trivial_numeric_casts);
 standard_lint!(unreachable_pub);
 standard_lint!(unsafe_code);
-standard_lint!(unsafe_op_in_unsafe_fn);
+
+//standard_lint!(unsafe_op_in_unsafe_fn);
+
 // unstable_features is deprecated unused_crate_dependencies is at crate level only
 standard_lint!(unused_extern_crates);
 standard_lint!(unused_import_braces);
@@ -307,6 +322,9 @@ standard_lint!(unconditional_panic);
 standard_lint!(useless_deprecated);
 
 // Based on https://doc.rust-lang.org/nightly/rustdoc/lints.html - in the same order:
+
+// Please advise the earliest Rust version that had `rustdoc::xxx` lints.
+/*
 prefixed_lint!(rustdoc::broken_intra_doc_links);
 prefixed_lint!(rustdoc::private_intra_doc_links);
 prefixed_lint!(rustdoc::missing_docs);
@@ -317,8 +335,10 @@ prefixed_lint!(rustdoc::invalid_codeblock_attributes);
 prefixed_lint!(rustdoc::invalid_html_tags);
 prefixed_lint!(rustdoc::invalid_rust_codeblocks);
 prefixed_lint!(rustdoc::bare_urls);
+*/
 
 // Based on https://rust-lang.github.io/rust-clippy/index.html for 1.31 to master:
+
 /*
 prefixed_lint!(rustdoc::);
 prefixed_lint!(rustdoc::);
