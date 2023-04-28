@@ -54,7 +54,8 @@ for them at anytime. Your team  could have a prelude-like module exporting the a
   it's most likely when the lints you are supressing are wide spread. Hence, if you choose to
   refactor the code, couldn't you as well upgrade it to newer Rust?
 - Custom lints (such as [with
-Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking-clippy/)).
+Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking-clippy/)). Possible
+in principle - will you commit to maintain it?
 
 ## Related issues - give thumbs up, please
 

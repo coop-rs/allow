@@ -118,7 +118,8 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
 // @TODO test that e.g. non_existing_std_lint fails TODO compile test that the following fails
 // standard_lint!(wrong_lint);
 
-// Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/allowed-by-default.html
+// Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/allowed-by-default.html - in the
+// same order:
 standard_lint!(absolute_paths_not_starting_with_crate);
 standard_lint!(box_pointers);
 // elided_lifetimes_in_paths is at crate level only
@@ -166,7 +167,8 @@ standard_lint!(unused_results);
 standard_lint!(unused_tuple_struct_fields);
 standard_lint!(variant_size_differences);
 
-// Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/warn-by-default.html:
+// Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/warn-by-default.html - in the same
+// order:
 #[rustversion::nightly]
 standard_lint!(ambiguous_glob_reexports);
 standard_lint!(anonymous_parameters);
@@ -267,7 +269,8 @@ standard_lint!(warnings);
 standard_lint!(where_clauses_object_safety);
 standard_lint!(while_true);
 
-// Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/deny-by-default.html
+// Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/deny-by-default.html - in the same
+// order:
 standard_lint!(ambiguous_associated_items);
 standard_lint!(arithmetic_overflow);
 standard_lint!(bindings_with_variant_name);
@@ -303,6 +306,27 @@ standard_lint!(unconditional_panic);
 // unknown_crate_types  is at crate level only
 standard_lint!(useless_deprecated);
 
+// Based on https://doc.rust-lang.org/nightly/rustdoc/lints.html - in the same order:
+prefixed_lint!(rustdoc::broken_intra_doc_links);
+prefixed_lint!(rustdoc::private_intra_doc_links);
+prefixed_lint!(rustdoc::missing_docs);
+prefixed_lint!(rustdoc::missing_crate_level_docs);
+prefixed_lint!(rustdoc::missing_doc_code_examples);
+prefixed_lint!(rustdoc::private_doc_tests);
+prefixed_lint!(rustdoc::invalid_codeblock_attributes);
+prefixed_lint!(rustdoc::invalid_html_tags);
+prefixed_lint!(rustdoc::invalid_rust_codeblocks);
+prefixed_lint!(rustdoc::bare_urls);
+
+// Based on https://rust-lang.github.io/rust-clippy/index.html for 1.31 to master:
+/*
+prefixed_lint!(rustdoc::);
+prefixed_lint!(rustdoc::);
+prefixed_lint!(rustdoc::);
+prefixed_lint!(rustdoc::);
+prefixed_lint!(rustdoc::);
+prefixed_lint!(rustdoc::);
+*/
 prefixed_lint!(clippy::assign_ops);
 // TODO compile test that the following fails - BUT ONLY with `cargo clippy`
 prefixed_lint!(clippy::WRONG_LINT);
