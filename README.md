@@ -38,15 +38,21 @@ for them at anytime. Your team  could have a prelude-like module exporting the a
 
 ### Out of scope
 
-- Lint groups (like `#[allow(unused)]`). That's contrary to the purpose of this crate: To
-  differentiate between the use cases of the same lint.
+- Lint groups (like `#[allow(unused)]`). They do have their place (for example: fast prototyping).
+  But they are contrary to the purpose of this crate: To differentiate between the use cases of the
+  same lint.
 - Crate level-only ("inner") attributes. They don't work with `#[allow(...)]`, but only with
   `#![allow(...)]` and only at crate level. Chances are you don't have many repetitions of these.
   You can give thumbs up to [rust-lang/rust #54726](https://github.com/rust-lang/rust/issues/54726),
   but even once that feature is implemented, top level attributes have to come before an `use`
   aliases, so you ouldn't alias calls to macros generating `#![allow(...)]` anyway - so no semantic
   benefit.
-- `Beta` version of `rustc` specifics ( it's only for 6 weeks). Or, would you help maintain this?
+- `Beta` version of `rustc` specifics. `Beta` version incubation is only for 6 weeks. Or, would you
+  help maintain this?
+- Rust older than `1.31`. (That's because we use
+  [`rustversion`](https://crates.io/crates/rustversion) crate.) If you would benefit from `allow`,
+  it's most likely when the lints you are supressing are wide spread. Hence, if you choose to
+  refactor the code, couldn't you as well upgrade it to newer Rust?
 - Custom lints (such as [with
 Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking-clippy/)).
 
@@ -69,7 +75,7 @@ Yes, proc macros often slow compilation down. Proc macros usually use
 powerhouses, which parse & quote the code that a macro can inject. However, their power comes at
 cost: build time.
 
-But, not so for these macros. This does not parse the new (generated) code into a TokenStream
+But, not so for these macros. This does not parse the new (generated) code into a `TokenStream`
 (before it's injected where you use it). Instead, it composes it (through the proc_macro API).
 
 (The tests do have many more dependencies. So don't judge its speed by `cargo test`, but by `cargo
@@ -85,7 +91,7 @@ maintenance.
 ## Help, please
 
 - Compilation **failure** tests, preferrably with [ui_test](https://github.com/oli-obk/ui_test), or
-  with [trybuild](https://github.com/dtolnay/trybuild) - but NOT with `compilertest-rs`). Validate
+  with [trybuild](https://github.com/dtolnay/trybuild) (but NOT with `compilertest-rs`). Validate
   that incorrect lint names make the macros fail. See [ui_test
   #57](https://github.com/oli-obk/ui_test/issues/57) or [trybuild
   #235](https://github.com/dtolnay/trybuild/issues/235).

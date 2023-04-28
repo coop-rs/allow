@@ -10,6 +10,7 @@ description = "Internal proc macros, for 'allow' crate only"
 documentation = "https://docs.rs/allow_internal"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
+homepage = "https://github.com/coop-rs/allow"
 readme = "../README.md"
 
 [lib]
