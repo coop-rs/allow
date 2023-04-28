@@ -1,1 +1,1 @@
-../../../../src/wrapper_macros.rs
+../../../../../allow/src/wrapper_macros.rs

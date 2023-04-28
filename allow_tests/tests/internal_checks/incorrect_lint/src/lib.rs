@@ -1,7 +1,5 @@
 #![forbid(unknown_lints)]
 
-use allow_internal::generate_allow_attribute_macro_definition_standard;
-
 #[macro_use]
 mod wrapper_macros;
 
@@ -11,5 +9,7 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
     };
 }
 
+// @TODO:
 //standard_lint!(non_existing_lint_without_prefix);
-//standard_lint!(unused);
+standard_lint!(dead_code);
+prefixed_lint!(clippy::dead_code_fix_this);
