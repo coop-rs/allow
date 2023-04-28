@@ -5,9 +5,10 @@ with its name - semantic.
 
 ## The problem
 
-Let's say you `#[allow(...)]` the same standard `rustc` (prefixless) lint, or `clippy::` or
-`rustdoc::` lint, at many places in your code. Even though it's the same lint, you may have
-different reasons for allowing it. However, `#[allow(...)]` doesn't carry your intention.
+Let's say you `#[allow(...)]` the same lint (either `rustc` -standard, prefixless lint, or
+`clippy::` or `rustdoc::` lint), and you do so at many places in your code. Even though it's the
+same lint, you may have different reasons for allowing it. However, `#[allow(...)]` doesn't carry
+your intention.
 
 Unfortunately, we can't alias lints with `use` either. (Why? Because lint names are not (proc)
 macros, but special compiler symbols.) Of course, you could add a comment, but that's haphazard.
@@ -34,10 +35,11 @@ for them at anytime. Your team  could have a prelude-like module exporting the a
 
 ### In scope
 
-- Rust versions 1.45, 1.49.0, 1.52.1, 1.58.1, 1.61.0, 1.69.0 and maybe some, but seemingly **not**
-  all, versions in between. See ["Out of scope"](#out-of-scope) below.
+- Rust versions 1.45, 1.49.0, 1.52.1, 1.58.1, 1.61.0, 1.69.0, 1.70.0-beta.1 and maybe some, but
+  seemingly **not** all, versions in between. See ["Out of scope"](#out-of-scope) below.
 - `stable` and `nightly` (but we may need your help with maintenance).
-- All in-built `rustc` lints ("standard" with no prefix); `clippy::` & `rustdoc::` lints.
+- `rustc` lints ("standard" with no prefix); `clippy::` & `rustdoc::` lints. But mostly lints that
+  are current.
 - Clippy: `allow` version `0.1.0` has all Clippy lints supported by Rust 1.45`. The author is adding
   newer lints (and specifying version ranges for lints that have been deprecated/removed later).
 
@@ -114,26 +116,18 @@ But, not so for these macros. `allow` does not parse the new (generated) code in
 
 The tests do have many more dependencies (if we continue to use `ui_test` - as `trybuild` may be
 much faster). So don't judge its speed by `cargo test`, but by `cargo build`. (Also, some tests
-don't run on Windows - see See [CONTRIBUTING.md](CONTRIBUTING.md#testing).)
+don't run on Windows - see See [CONTRIBUTING.md](CONTRIBUTING.md#testing). Of course, the actual
+crates themselves are platform-independent.)
 
 ## Crates, crates.io and GIT
 
-This project consists of three crates. Two of them will soon be (TODO update) on crates.io: `allow`
-and `allow_internal`. The third one, `allow_tests`, is not on crates.io, and it is for testing only.
-(TODO If we continue with `ui_test`, consider a 4th crate, for testing only, so we check for Rust
-below 1.63 more.)
+This project consists of three crates. Two of them are on crates.io: `allow` and `allow_internal`.
+The third one, `allow_tests`, is not on crates.io, because it is for testing only. (TODO If we
+continue with `ui_test`, move its non-ui_test-dependent parts to a 4th crate, so we run them for
+Rust below 1.63, too.)
 
 They are all under the same [GIT repo](https://github.com/coop-rs/allow), which simplifies
 maintenance.
-
-## Help, please
-
-- Compilation **failure** tests, preferably with [ui_test](https://github.com/oli-obk/ui_test), or
-  with [trybuild](https://github.com/dtolnay/trybuild) (but NOT with `compilertest-rs`). Validate
-  that incorrect lint names make the macros fail. See [ui_test
-  #57](https://github.com/oli-obk/ui_test/issues/57) or [trybuild
-  #235](https://github.com/dtolnay/trybuild/issues/235).
-- Set up CI with GitHub Actions.
 
 ## Reporting Issues
 
@@ -142,6 +136,14 @@ See [coop-rs/allow > issues](https://github.com/coop-rs/allow/issues).
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+Do you know of anyone with
+- experience with https://github.com/dtolnay/trybuild, or with https://github.com/oli-obk/ui_test,
+  or
+- knowledge or involvement in versioning/planning/source code life cycle of rustc (prefixless)
+  lints, (less so `rustdoc::` - few), or (very much so) `clippy::` lints, or
+- experience with using many lints or using them frequently, and handling their changes coming from
+  rustc/rustdoc/clippy?
 
 ## License
 

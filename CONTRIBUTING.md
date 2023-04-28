@@ -1,8 +1,8 @@
 ## Testing
 
 Testing is not possible on Windows (to be determined). To minimize human mistakes, tests need to be
-built on a filesystem that supports symlinks. Of course, the actual crates themselves are
-platform-independent.
+built on a filesystem that supports symlinks (for
+[`allow_tests/tests/internal_checks/incorrect_lint/src/wrapper_macros.rs`](allow_tests/tests/internal_checks/incorrect_lint/src/wrapper_macros.rs)).
 
 ## Rust and cargo versions
 

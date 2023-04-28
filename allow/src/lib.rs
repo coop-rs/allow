@@ -1121,4 +1121,4 @@ prefixed_lint!(clippy::zero_width_space);
 prefixed_lint!(clippy::zst_offset);
 
 // TODO compile test that the following fails - BUT ONLY with `cargo clippy`
-prefixed_lint!(clippy::WRONG_LINT);
+// prefixed_lint!(clippy::WRONG_LINT);
