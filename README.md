@@ -18,8 +18,8 @@ front of your code.
 
 You can import same macros as many times under as many names you need, for example:
 
-- `use lint_allows::rustdoc_missing_doc_code_examples as examples_linked;`
-- `use lint_allows::rustdoc_missing_doc_code_examples as examples_none_trivial;`
+- `use lint_allow::rustdoc_missing_doc_code_examples as examples_linked;`
+- `use lint_allow::rustdoc_missing_doc_code_examples as examples_none_trivial;`
 
 Then apply #[examples_linked], #[examples_none_trivial], or as you name them, indicating your
 intention. (Side not: Handling `rustdoc::` and `clippy::` is not implemented yet. Only standard
@@ -75,6 +75,13 @@ But, not so for these macros. This does not parse the new (generated) code into 
 (The tests do have many more dependencies. So don't judge its speed by `cargo test`, but by `cargo
 build`.)
 
+## Crates, crates.io and GIT
+This project consists of three crates. Two of them will soon be (TODO update) on crates.io: `allow`
+and `allow_internal`. The third one, `allow_tests`, is not on crates.io, and it is for testing only.
+
+They are all under the same [GIT repo](https://github.com/coop-rs/allow), which simplifies
+maintenance.
+
 ## Help, please
 
 - Compilation **failure** tests, preferrably with [ui_test](https://github.com/oli-obk/ui_test), or
@@ -86,7 +93,7 @@ build`.)
 
 ## Reporting Issues
 
-See [coop-rs/allows > issues](https://github.com/coop-rs/allows/issues).
+See [coop-rs/allow > issues](https://github.com/coop-rs/allow/issues).
 
 ## Contributing
 
@@ -100,7 +107,8 @@ platform-independent.
 
 ## License
 
-Allows is distributed under the terms of both the MIT license and the Apache License (Version 2.0).
+Allow project is distributed under the terms of both the MIT license and the Apache License (Version
+2.0).
 
 See [LICENSE-APACHE](LICENSE-APACHE), [LICENSE-MIT](LICENSE-MIT), and [COPYRIGHT](COPYRIGHT) for
 details.

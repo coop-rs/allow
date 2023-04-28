@@ -1,13 +1,13 @@
 {
     "colorTabs.config": [
         {
-            "regex": "allows/.*"
+            "regex": "allow/.*"
         },
         {
-            "regex": "allows_internals/.*"
+            "regex": "allow_internal/.*"
         },
         {
-            "regex": "allows_tests/.*"
+            "regex": "allow_tests/.*"
         }
     ]
 }

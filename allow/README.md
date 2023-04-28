@@ -1,0 +1,1 @@
+See the overall [`allow` project](../README.md).
