@@ -2,7 +2,7 @@
 name = "allow"
 version = "0.1.0"
 edition = "2021"
-# NO rust-version here, because that applies only from 1.56. Based on
+# NO rust-version here, because that applies only from 1.56. But, based on
 # https://github.com/dtolnay/rustversion it seems that we support 1.31+.
 
 [lib]
@@ -19,11 +19,3 @@ allow_internal = { path = "../allow_internal", version = "0.1.*" }
 
 [build-dependencies]
 rustversion = "1.0"
-
-[dev-dependencies]
-ui_test = "0.8.*"
-colored = "2"
-
-[[test]]
-name = "internal_checks"
-harness = false

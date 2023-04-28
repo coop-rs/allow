@@ -10,4 +10,9 @@ rust-version = "1.63" # because of https://github.com/oli-obk/ui_test
 allow = { path = "../allow", version = "0.1.*" }
 
 [dev-dependencies]
-# ui_test = "0.8.*"
+ui_test = "0.8.*"
+colored = "2"
+
+[[test]]
+name = "internal_checks"
+harness = false

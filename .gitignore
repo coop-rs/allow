@@ -1,3 +1,5 @@
 /allow*/target
 /allow*/Cargo.lock
 /.vscode/settings.json
+/allow_tests/tests/target
+/allow_tests/tests/internal_checks/incorrect_lint/Cargo.lock
