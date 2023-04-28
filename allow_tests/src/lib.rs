@@ -1,4 +1,5 @@
-#![deny(unknown_lints)]
+#![forbid(unknown_lints)]
+
 //#[warn(renamed_and_removed_lints)]
 #[test]
 fn test_unused() {
@@ -26,7 +27,6 @@ fn test_unused() {
 //#[allow(clippy::oh_dear)]
 //#[allows::clippy_clbu]
 pub fn unused() {
-    #![deny(unknown_lints)]
     //#[allows::clippy_clbu]
     //#[allow(clippy::hohoho)]
     fn f() {
@@ -43,7 +43,7 @@ pub fn unused() {
 // The following two together trigger an ICE.
 //#[allows::array_into_iter]
 //#[allows::bufo]
-#[allows::clippy_assign_ops]
+#[allow::clippy_assign_ops]
 
 // #[allows::clippy_assign_ops]
 

@@ -1,3 +1,6 @@
+// We could have `#![forbid(unknown_lints)]` here, be we don't want to. Otherwise it could break
+// consumer crates if some lints don't exist anymore (and if `allow` crate itself is not updated
+// yet).
 #![deny(unknown_lints)]
 #![cfg_attr(
     unstable_feature, // "unstable_feature" comes from ../build.rs

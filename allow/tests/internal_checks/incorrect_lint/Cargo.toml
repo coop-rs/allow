@@ -2,10 +2,7 @@
 name = "incorrect_lint"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.63"
-
-[workspace]
 
 [dependencies]
 # allows = { path = "../../.." }
-allows_internals = { path = "../../../../allows_internals" }
+allow_internal = { path = "../../../../allow_internal" }

@@ -1,5 +1,0 @@
-[workspace]
-# allow_tests is not a member, because due to https://github.com/oli-obk/ui_test it requires Rust
-# 1.63.
-members = ["allow"]
-default-members = ["allow"]
