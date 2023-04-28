@@ -38,12 +38,11 @@ pub fn unused() {
 
 // The following two together have triggered an ICE.
 //#[allow::unused]
-//#[allow::unused_braces]
-
+#[allow::unused_braces]
 // The following two together trigger an ICE.
 //#[allow::array_into_iter]
 //#[allow::bufo]
-#[allow::clippy_assign_ops]
+#[allow::clippy_await_holding_lock]
 
 // #[allow::clippy_assign_ops]
 

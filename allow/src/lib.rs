@@ -281,7 +281,7 @@ standard_lint!(unused_mut);
 standard_lint!(unused_parens);
 standard_lint!(unused_unsafe);
 standard_lint!(unused_variables);
-standard_lint!(warnings);
+// warnings is a group
 standard_lint!(where_clauses_object_safety);
 standard_lint!(while_true);
 
