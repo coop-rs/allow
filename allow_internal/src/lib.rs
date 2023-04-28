@@ -1,5 +1,9 @@
 //! NOT for public use. Only to be used by `allow` crate.
+
+extern crate proc_macro; // TODO remove if we upgrade Rust edition
+
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
+use std::iter::FromIterator; // TODO remove if we upgrade Rust edition
 
 #[proc_macro]
 pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
@@ -38,8 +42,13 @@ fn generate_allow_attribute_macro_definition_from_iter(
     let lint_name = lint_name_input.next().unwrap_or_else(|| {
         panic!("Expecting a lint name (Identifier), but reached the end of the input.")
     });
-    let TokenTree::Ident(_) = &lint_name else {
-        panic!("Expecting a TokenTree::Ident(lint_name), but received {:?}.", lint_name);
+    // @TODO in Rust 1.42: revert to: if !matches!(&lint_name, TokenTree::Ident(_)) {..}
+    match &lint_name {
+        TokenTree::Ident(_) => (),
+        _ => panic!(
+            "Expecting a TokenTree::Ident(lint_name), but received {:?}.",
+            lint_name
+        ),
     };
 
     let mut lint_name_input = lint_name_input.peekable();
@@ -80,13 +89,17 @@ fn generate_allow_attribute_macro_definition_from_iter(
         Delimiter::Parenthesis,
         TokenStream::from_iter(generate_internal_params),
     ));
-    let tokens = [
+    let tokens_arr = [
         generate_internal,
         exclamation,
         generate_internal_params_parens,
         TokenTree::Punct(Punct::new(';', Spacing::Joint)),
     ];
+    // TODO remove if we upgrade Rust min. version, or edition to 2021
+    let mut tokens = Vec::with_capacity(4);
+    tokens.extend_from_slice(&tokens_arr);
     TokenStream::from_iter(tokens)
+    //TokenStream::from_iter(tokens) // use if we upgrade Rust min. version, or edition to 2021
 }
 
 #[proc_macro]
@@ -114,8 +127,12 @@ pub fn generate_allow_attribute_macro_definition_prefixed(
     let token_tree = lint_path_input.next();
     let token_tree =
         token_tree.unwrap_or_else(|| panic!("Expecting lint path, but received an empty input."));
-    let TokenTree::Group(group) = token_tree else {
-        panic!("Expecting a TokenTree::Group, but received {:?}.", token_tree);
+    let group = match token_tree {
+        TokenTree::Group(group) => group,
+        _ => panic!(
+            "Expecting a TokenTree::Group, but received {:?}.",
+            token_tree
+        ),
     };
     let group = group.stream();
     let mut group = group.into_iter();
@@ -123,16 +140,24 @@ pub fn generate_allow_attribute_macro_definition_prefixed(
     let prefix = group.next().unwrap_or_else(|| {
         panic!("Expecting a lint prefix (Identifier), but reached the end of the input.")
     });
-    let TokenTree::Ident(prefix) = prefix else {
-        panic!("Expecting a TokenTree::Ident(prefix), but received {:?}.", prefix);
+    let prefix = match prefix {
+        TokenTree::Ident(prefix) => prefix,
+        _ => panic!(
+            "Expecting a TokenTree::Ident(prefix), but received {:?}.",
+            prefix
+        ),
     };
 
     (0..2).for_each(|_| {
         let punct = group.next().unwrap_or_else(|| {
             panic!("Expecting a colon (Punct ':'...), but reached the end of the input.")
         });
-        let TokenTree::Punct(punct) = punct else {
-            panic!("Expecting a TokenTree::Punct(Punct(':'...)), but received {:?}.", punct);
+        let punct = match punct {
+            TokenTree::Punct(punct) => punct,
+            _ => panic!(
+                "Expecting a TokenTree::Punct(Punct(':'...)), but received {:?}.",
+                punct
+            ),
         };
         assert_eq!(
             punct.as_char(),
