@@ -300,6 +300,7 @@ standard_lint!(conflicting_repr_hints);
 standard_lint!(deprecated_cfg_attr_crate_type_name);
 standard_lint!(enum_intrinsics_non_enums);
 // ill_formed_attribute_input is at crate level only
+// TODO Rust version
 standard_lint!(implied_bounds_entailment);
 standard_lint!(incomplete_include);
 standard_lint!(ineffective_unstable_trait_impl);

@@ -5,10 +5,10 @@ with its name - semantic.
 
 ## The problem
 
-Let's say you `#[allow(...)]` the same lint (either `rustc` -standard, prefixless lint, or
-`clippy::` or `rustdoc::` lint), and you do so at many places in your code. Even though it's the
-same lint, you may have different reasons for allowing it. However, `#[allow(...)]` doesn't carry
-your intention.
+Let's say you `#[allow(...)]` the same lint (either `rustc` standard (prefixless) lint, or lints
+prefixed with `clippy::` or `rustdoc::`), and you do so at many places in your code. Even though
+it's the same lint, you may have different reasons for allowing it. However, `#[allow(...)]` doesn't
+carry your intention.
 
 Unfortunately, we can't alias lints with `use` either. (Why? Because lint names are not (proc)
 macros, but special compiler symbols.) Of course, you could add a comment, but that's haphazard.
@@ -17,7 +17,7 @@ This crate defines one attribute macro per each lint (other than crate-level onl
 below). Those macros don't take any attribute parameters. They inject `#[allow(lint-name-here)]` in
 front of your code.
 
-You can import same macros as many times under as many names you need, for example:
+You can import same macros as many times under as many names you need. For example:
 
 - `use allow::anonymous_parameters as allow_anonymous_params_legacy;`
 - `use allow::rustdoc_missing_doc_code_examples as allow_rustdoc_examples_linked;`
@@ -29,7 +29,7 @@ Then apply `#[allow_anonymous_params_legacy]`, `#[allow_rustdoc_examples_linked]
 before your struct/enum/function/variable..., indicating your intention.
 
 Side benefit: Rust would validate the (aliased) names, hence no typos. So you can `grep` or search
-for them at anytime. Your team  could have a prelude-like module exporting the aliases.
+for them at anytime. Your team could have a prelude-like module, or crate, re-exporting the aliases.
 
 ## Scope
 
@@ -38,6 +38,9 @@ for them at anytime. Your team  could have a prelude-like module exporting the a
 - Rust versions 1.45, 1.49.0, 1.52.1, 1.58.1, 1.61.0, 1.69.0, 1.70.0-beta.1, 1.71.0-nightly and
   maybe some, but seemingly **not** all, versions in between. See ["Out of scope"](#out-of-scope)
   below.
+  
+  In order to bisect the correct Rust versions for each lint, could you give thumbs up to
+  [rust-lang/rust #110977](https://github.com/rust-lang/rust/issues/110977), please.
 - `stable` and `nightly` (but we may need your help with maintenance).
 - `rustc` lints ("standard" with no prefix); `clippy::` & `rustdoc::` lints. But mostly lints that
   are current.
@@ -100,6 +103,7 @@ in principle - will you commit to maintain it?
 - [Partial stabilization of once_cell](https://github.com/rust-lang/rust/pull/105587)
 - [standard lazy types](https://github.com/rust-lang/rfcs/pull/2788)
 - [`concat_idents`](https://github.com/rust-lang/rust/issues/29599)
+- [figuring out Rust versions per lint](https://github.com/rust-lang/rust/issues/110977)
 
 ## Efficient proc macros
 

@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use colored::Colorize;
+//use colored::Colorize;
 use ui_test::color_eyre::Result;
 use ui_test::{CommandBuilder, Config, Match, Mode, OutputConflictHandling};
 
@@ -82,7 +82,7 @@ fn run(sub_dir_name: &'static str) -> Result<()> {
     // runs afterwards.
     config
         .stderr_filters
-        .insert(0, (Match::Exact(b"\\\\".iter().copied().collect()), b"\\"));
+        .insert(0, (Match::Exact(b"\\\\".to_vec()), b"\\"));
     config.stderr_filter("\\.exe", b"");
     config.stderr_filter(r#"(panic.*)\.rs:[0-9]+:[0-9]+"#, "$1.rs");
     config.stderr_filter("   [0-9]: .*", "");

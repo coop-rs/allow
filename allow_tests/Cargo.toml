@@ -1,6 +1,6 @@
 [package]
 name = "allow_tests"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021" # because of 1.63
 rust-version = "1.63" # because of https://github.com/oli-obk/ui_test
 
@@ -11,7 +11,7 @@ allow = { path = "../allow", version = "0.1.*" }
 
 [dev-dependencies]
 ui_test = "0.8.*"
-colored = "2"
+# colored = "2"
 
 [[test]]
 name = "internal_checks"
