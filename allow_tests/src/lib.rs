@@ -17,7 +17,7 @@ fn test_unused() {
 /// then:
 /// 1. such a #[deny(...)] applies only to the first item (function), and
 /// 2. even worse: Even if you do add an appropriate `#[allow::...]` in front of that first item,
-///    that `#[allow::...]` will NOT apply - because it will be "overriden" by the previous
+///    that `#[allow::...]` will NOT apply - because it will be "overridden" by the previous
 ///    (mistaken) `#[deny(...)]`.
 /// 3. The rest of the code will not get that lint checked (of course).
 
@@ -25,10 +25,8 @@ fn test_unused() {
 // from a (separate) `#[test]` function, for peace of mind.
 
 //#[allow(clippy::oh_dear)]
-//#[allow::clippy_clbu]
 pub fn unused() {
-    //#[allow::clippy_clbu]
-    //#[allow(clippy::hohoho)]
+    //#[allow(clippy::oh_dear2)]
     fn f() {
         std::hint::black_box(());
     }
@@ -36,20 +34,6 @@ pub fn unused() {
     _unused();
 }
 
-// The following two together have triggered an ICE.
-//#[allow::unused]
 #[allow::unused_braces]
-// The following two together trigger an ICE.
-//#[allow::array_into_iter]
-//#[allow::bufo]
 #[allow::clippy_await_holding_lock]
-
-// #[allow::clippy_assign_ops]
-
-//#[allow::clippy_almost_swapped] // <--- problem
-//#[allow::clippy_assign_ops]
-//#[allow::clippy_clbu]
 fn _unused() {}
-
-//#[allow::unused]
-//fn unused2() {}

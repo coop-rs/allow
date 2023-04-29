@@ -130,6 +130,11 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
 // @TODO test that e.g. non_existing_std_lint fails TODO compile test that the following fails
 // standard_lint!(wrong_lint);
 
+// MAINTENANCE NOTE When you edit/add comments below, if you have two (or more) successive comments
+// about different lints, either insert a blank line between those comments, or a line with an empty
+// `//` comment. That allows us to reformat all comments in VS Code withCtrl+A Alt+Q using
+// https://marketplace.visualstudio.com/items?itemName=stkb.rewrap.
+
 // Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/allowed-by-default.html - in the
 // same order:
 
@@ -368,8 +373,7 @@ prefixed_lint!(clippy::await_holding_lock);
 prefixed_lint!(clippy::bad_bit_mask);
 #[rustversion::since(1.45.0)]
 prefixed_lint!(clippy::bind_instead_of_map);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::blacklisted_name);
+// clippy::blacklisted_name has been renamed to `clippy::disallowed_names`
 #[rustversion::since(1.45.0)]
 prefixed_lint!(clippy::blocks_in_if_conditions);
 #[rustversion::since(1.44.1)]
@@ -378,8 +382,7 @@ prefixed_lint!(clippy::bool_comparison);
 prefixed_lint!(clippy::borrow_interior_mutable_const);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::borrowed_box);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::box_vec);
+// clippy::box_vec has been renamed to `clippy::box_collection`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::boxed_local);
 #[rustversion::since(1.44.1)]
@@ -446,8 +449,7 @@ prefixed_lint!(clippy::deprecated_cfg_attr);
 prefixed_lint!(clippy::deprecated_semver);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::deref_addrof);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::derive_hash_xor_eq);
+// clippy::derive_hash_xor_eq has been renamed to `clippy::derived_hash_with_manual_eq`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::diverging_sub_expression);
 #[rustversion::since(1.44.1)]
@@ -460,8 +462,7 @@ prefixed_lint!(clippy::double_must_use);
 prefixed_lint!(clippy::double_neg);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::double_parens);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::drop_bounds);
+// clippy::drop_bounds has been renamed to (prefixless) `drop_bounds`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::drop_copy);
 #[rustversion::since(1.44.1)]
@@ -488,8 +489,7 @@ prefixed_lint!(clippy::enum_variant_names);
 prefixed_lint!(clippy::eq_op);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::erasing_op);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::eval_order_dependence);
+// clippy::eval_order_dependence has been renamed to `clippy::mixed_read_write_in_expression`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::excessive_precision);
 #[rustversion::since(1.44.1)]
@@ -517,14 +517,14 @@ prefixed_lint!(clippy::extra_unused_lifetimes);
 prefixed_lint!(clippy::fallible_impl_from);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::filetype_is_file);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::filter_map);
+// clippy::filter_map has been removed: this lint has been replaced by `manual_filter_map`, a more
+// specific (and prefixless) lint.
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::filter_map_next);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::filter_next);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::find_map);
+// clippy::find_map has been removed: this lint has been replaced by `manual_find_map`, a more
+// specific (and prefixless) lint.
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::flat_map_identity);
 #[rustversion::since(1.44.1)]
@@ -544,9 +544,10 @@ prefixed_lint!(clippy::fn_to_numeric_cast_with_truncation);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::for_kv_map);
 // for_loop_over_option is removed since 1.45
+//
 // for_loop_over_result is removed since 1.45
-#[rustversion::since(1.45.0)]
-prefixed_lint!(clippy::for_loops_over_fallibles);
+//
+// clippy::for_loops_over_fallibles has been renamed to (prefixless) `for_loops_over_fallibles`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::forget_copy);
 #[rustversion::since(1.44.1)]
@@ -563,8 +564,8 @@ prefixed_lint!(clippy::identity_op);
 #[rustversion::since(1.45.0)]
 prefixed_lint!(clippy::if_let_mutex);
 // clippy::if_let_redundant_pattern_matching is deprecated since at least 1.45
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::if_let_some_result);
+//
+// clippy::if_let_some_result has been renamed to `clippy::match_result_ok`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::if_not_else);
 #[rustversion::since(1.44.1)]
@@ -608,13 +609,15 @@ prefixed_lint!(clippy::integer_division);
 // clippy::into_iter_on_array is deprecated since at least 1.45
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::into_iter_on_ref);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::invalid_atomic_ordering);
+// clippy::invalid_atomic_ordering has been renamed to (prefixless) `invalid_atomic_ordering`
+//
 // clippy::invalid_ref is deprecated since at least 1.44.1
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::invalid_regex);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::invalid_upcast_comparisons);
+#[rustversion::since(1.49)]
+prefixed_lint!(clippy::invisible_characters);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::items_after_statements);
 #[rustversion::since(1.44.1)]
@@ -653,8 +656,7 @@ prefixed_lint!(clippy::let_underscore_must_use);
 prefixed_lint!(clippy::let_unit_value);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::linkedlist);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::logic_bug);
+// clippy::logic_bug has been renamed to `clippy::overly_complex_bool_expr`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::lossy_float_literal);
 #[rustversion::since(1.44.1)]
@@ -701,8 +703,7 @@ prefixed_lint!(clippy::match_wild_err_arm);
 prefixed_lint!(clippy::match_wildcard_for_single_variants);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::maybe_infinite_iter);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::mem_discriminant_non_enum);
+// clippy::mem_discriminant_non_enum has been renamed to (prefixless) `enum_intrinsics_non_enums`
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::mem_forget);
 #[rustversion::since(1.44.1)]
@@ -819,6 +820,7 @@ prefixed_lint!(clippy::option_map_or_none);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::option_map_unit_fn);
 // option_map_unwrap_or is removed since 1.45.0 TODO check
+//
 // option_mapw_unwrap_or_else is removed since 1.45.0 TODO check
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::option_option);
@@ -831,8 +833,7 @@ prefixed_lint!(clippy::out_of_bounds_indexing);
 prefixed_lint!(clippy::overflow_check_conditional);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::panic);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::panic_params);
+// clippy::panic_params has been renamed to (prefixless)
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::panicking_unwrap);
 #[rustversion::since(1.44.1)]
@@ -855,8 +856,9 @@ prefixed_lint!(clippy::println_empty_string);
 prefixed_lint!(clippy::ptr_arg);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::ptr_offset_with_cast);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::pub_enum_variant_names);
+// clippy::pub_enum_variant_names has been removed. set the `avoid-breaking-exported-api` config
+// option to `false` to enable the `enum_variant_names` lint for public items. (Probably a
+// prefixless lint; `allow` crate doesn't support attribute parameters.)
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::question_mark);
 #[rustversion::since(1.44.1)]
@@ -886,20 +888,22 @@ prefixed_lint!(clippy::redundant_pattern_matching);
 prefixed_lint!(clippy::redundant_pub_crate);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::redundant_static_lifetimes);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::ref_in_deref);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::regex_macro);
+// clippy::ref_in_deref has been renamed to clippy::needless_borrow
+//
+// clippy::regex_macro has been removed
+//
 // clippy::replace_consts is deprecated since 1.45
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::rest_pat_in_fully_bound_structs);
-// result_expect_used is removed since 1.45 TODO check
+// result_expect_used has been removed since 1.45 TODO check
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::result_map_or_into_option);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::result_map_unit_fn);
 // result_map_unwrap_or_else is removed since 1.45 TODO check
+//
 // result_unwrap_used is removed since 1.45 TODO check
+//
 // reverse_range_loop is removed since 1.45 TODO check
 #[rustversion::since(1.45.0)]
 prefixed_lint!(clippy::reversed_empty_ranges);
@@ -965,7 +969,7 @@ prefixed_lint!(clippy::tabs_in_doc_comments);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::temporary_assignment);
 #[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::temporary_cstring_as_ptr);
+// clippy::temporary_cstring_as_ptr is renamed to (prefixless) temporary_cstring_as_ptr
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::to_digit_is_some);
 #[rustversion::since(1.44.1)]
@@ -1012,8 +1016,7 @@ prefixed_lint!(clippy::uninit_assumed_init);
 prefixed_lint!(clippy::unit_arg);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::unit_cmp);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::unknown_clippy_lints);
+// clippy::unknown_clippy_lints is renamed to (prefixless rustc lint) unknown_lints
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::unnecessary_cast);
 #[rustversion::since(1.44.1)]
@@ -1044,7 +1047,9 @@ prefixed_lint!(clippy::unseparated_literal_suffix);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::unsound_collection_transmute);
 // clippy::unstable_as_mut_slice is deprecated since at least 1.44.1
+//
 // clippy::unstable_as_slice is deprecated since at least 1.44.1
+//
 // clippy::unused_collect is deprecated since at least 1.44.1
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::unused_io_amount);
@@ -1101,10 +1106,13 @@ prefixed_lint!(clippy::wildcard_in_or_patterns);
 prefixed_lint!(clippy::write_literal);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::write_with_newline);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::writeln_empty_string);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::wrong_pub_self_convention);
+// clippy::writeln_empty_string is removed: set the `avoid-breaking-exported-api` config option to
+// `false` to enable the `wrong_self_convention` lint for public items. (Probably a prefixless lint;
+// `allow` crate doesn't support attribute parameters.)
+//
+// clippy::wrong_pub_self_convention has been removed: set the `avoid-breaking-exported-api` config
+// option to `false` to enable the `wrong_self_convention` lint for public items. (Probably a
+// prefixless lint; `allow` crate doesn't support attribute parameters.)
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::wrong_self_convention);
 #[rustversion::since(1.44.1)]
@@ -1115,8 +1123,7 @@ prefixed_lint!(clippy::zero_divided_by_zero);
 prefixed_lint!(clippy::zero_prefixed_literal);
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::zero_ptr);
-#[rustversion::since(1.44.1)]
-prefixed_lint!(clippy::zero_width_space);
+// clippy::zero_width_space renamed in 1.49 to clippy::invisible_characters
 #[rustversion::since(1.44.1)]
 prefixed_lint!(clippy::zst_offset);
 

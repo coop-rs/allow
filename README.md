@@ -35,8 +35,9 @@ for them at anytime. Your team  could have a prelude-like module exporting the a
 
 ### In scope
 
-- Rust versions 1.45, 1.49.0, 1.52.1, 1.58.1, 1.61.0, 1.69.0, 1.70.0-beta.1 and maybe some, but
-  seemingly **not** all, versions in between. See ["Out of scope"](#out-of-scope) below.
+- Rust versions 1.45, 1.49.0, 1.52.1, 1.58.1, 1.61.0, 1.69.0, 1.70.0-beta.1, 1.71.0-nightly and
+  maybe some, but seemingly **not** all, versions in between. See ["Out of scope"](#out-of-scope)
+  below.
 - `stable` and `nightly` (but we may need your help with maintenance).
 - `rustc` lints ("standard" with no prefix); `clippy::` & `rustdoc::` lints. But mostly lints that
   are current.
