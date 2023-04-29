@@ -1,7 +1,12 @@
+//! Generate proc macros that alias all lints: rustc = prefixless, or with prefix clippy:: or rustdoc:: (except for lint groups).
 // We could have `#![forbid(unknown_lints)]` here, be we don't want to. Otherwise it could break
 // consumer crates if some lints don't exist anymore (and if `allow` crate itself is not updated
 // yet).
 #![deny(unknown_lints)]
+// @TODO e.g.
+//
+// `#![cfg_attr(check_missing_docs_xxx, deny(rustdoc::missing_docs_xxx)]`
+#![deny(missing_docs, invalid_doc_attributes, unused_doc_comments)]
 #![cfg_attr(
     unstable_feature, // "unstable_feature" comes from ../build.rs
     feature(
@@ -101,7 +106,14 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
 /// `::` (for `clippy::` or `rustdoc::` lints).
 #[allow(unused_macros)]
 macro_rules! generate_allow_attribute_macro_definition_internal {
+    // @TODO consider an (optional) macro parameter, indicating whether the original lint accepts
+    // any attribute parameters (which we don't support - so then we could mention the fact in the
+    // below generated rustdoc /// comment about what is being aliased.)
     ( $lint_path:path, $new_macro_name:ident ) => {
+        // @TODO generate a doc attribute instead of a comment:
+        #[doc = "Alias to `#[allow("]
+        #[doc = stringify!($lint_path)]
+        #[doc = ")]`."]
         #[proc_macro_attribute]
         pub fn $new_macro_name(
             given_attrs: ::proc_macro::TokenStream,
@@ -331,6 +343,7 @@ standard_lint!(useless_deprecated);
 // Based on https://doc.rust-lang.org/nightly/rustdoc/lints.html - in the same order:
 
 // According to https://releases.rs/docs/1.52.0/#rustdoc rustdoc:: lints exist since 1.52:
+/*
 #[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::broken_intra_doc_links);
 #[rustversion::since(1.52)]
@@ -351,7 +364,7 @@ prefixed_lint!(rustdoc::invalid_html_tags);
 prefixed_lint!(rustdoc::invalid_rust_codeblocks);
 #[rustversion::since(1.52)]
 prefixed_lint!(rustdoc::bare_urls);
-
+*/
 // Based on https://rust-lang.github.io/rust-clippy/index.html for 1.45 to master:
 //
 // Any clippy:: lint marked as `rustversion::since(1.44.1)` may have existed earlier, too.

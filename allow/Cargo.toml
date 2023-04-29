@@ -1,6 +1,6 @@
 [package]
 name = "allow"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2018"
 # Because of https://github.com/dtolnay/rustversion we can't support before 1.31. However, to use
 # `::allow_internal::path_to_str_literal!($lint_path)` we also need proc macros in expression
@@ -18,6 +18,7 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
 homepage = "https://github.com/coop-rs/allow"
 readme = "../README.md"
+build = "build.rs"
 
 [lib]
 proc-macro = true
