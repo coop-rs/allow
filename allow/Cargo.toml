@@ -34,3 +34,4 @@ allow_internal = { path = "../allow_internal", version = "0.1.1" }
 
 [build-dependencies]
 rustversion = "1.0"
+cargo-toolchain = "0.1.0"

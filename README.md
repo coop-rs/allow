@@ -38,9 +38,6 @@ for them at anytime. Your team could have a prelude-like module, or crate, re-ex
 - Rust versions 1.45, 1.49.0, 1.52.1, 1.58.1, 1.61.0, 1.69.0, 1.70.0-beta.1, 1.71.0-nightly and
   maybe some, but seemingly **not** all, versions in between. See ["Out of scope"](#out-of-scope)
   below.
-  
-  In order to bisect the correct Rust versions for each lint, could you give thumbs up to
-  [rust-lang/rust #110977](https://github.com/rust-lang/rust/issues/110977), please.
 - `stable` and `nightly` (but we may need your help with maintenance).
 - `rustc` lints ("standard" with no prefix); `clippy::` & `rustdoc::` lints. But mostly lints that
   are current.
@@ -96,6 +93,13 @@ for them at anytime. Your team could have a prelude-like module, or crate, re-ex
 Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking-clippy/)). Possible
 in principle - will you commit to maintain it?
 
+## Reporting Issues and Known issues
+
+The tests don't cover `rustdoc::` and `clippy::` well yet. And `clippy::` lints are as of Rust
+version `1.45` (for now).
+
+See also [coop-rs/allow > issues](https://github.com/coop-rs/allow/issues).
+
 ## Related issues - give thumbs up, please
 
 - [`thread_local!` failing for proc macros](https://github.com/rust-lang/rust/issues/66003)
@@ -103,7 +107,6 @@ in principle - will you commit to maintain it?
 - [Partial stabilization of once_cell](https://github.com/rust-lang/rust/pull/105587)
 - [standard lazy types](https://github.com/rust-lang/rfcs/pull/2788)
 - [`concat_idents`](https://github.com/rust-lang/rust/issues/29599)
-- [figuring out Rust versions per lint](https://github.com/rust-lang/rust/issues/110977)
 
 ## Efficient proc macros
 
@@ -126,17 +129,13 @@ crates themselves are platform-independent.)
 
 ## Crates, crates.io and GIT
 
-This project consists of three crates. Two of them are on crates.io: `allow` and `allow_internal`.
-The third one, `allow_tests`, is not on crates.io, because it is for testing only. (TODO If we
-continue with `ui_test`, move its non-ui_test-dependent parts to a 4th crate, so we run them for
-Rust below 1.63, too.)
+This project consists of four crates (and potentially a fifth one may come). Three of them are on
+crates.io: `allow`, `allow_impl` and `allow_internal`. The fourth one, `allow_tests`, is not on
+crates.io, because it is for testing only. (TODO If we continue with `ui_test`, move its
+non-ui_test-dependent parts to a fifth crate, so we run them for Rust below 1.63, too.)
 
 They are all under the same [GIT repo](https://github.com/coop-rs/allow), which simplifies
 maintenance.
-
-## Reporting Issues
-
-See [coop-rs/allow > issues](https://github.com/coop-rs/allow/issues).
 
 ## Contributing
 

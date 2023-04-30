@@ -1,11 +1,15 @@
-//! Generate proc macros that alias all lints: rustc = prefixless, or with prefix clippy:: or rustdoc:: (except for lint groups).
-// We could have `#![forbid(unknown_lints)]` here, be we don't want to. Otherwise it could break
-// consumer crates if some lints don't exist anymore (and if `allow` crate itself is not updated
-// yet).
-#![deny(unknown_lints)]
-// @TODO e.g.
+//! Generate proc macros that alias all lints: rustc = prefixless, or with prefix clippy:: or
+//! rustdoc:: (except for lint groups).
+// We can't have `#![forbid(unknown_lints)]` here, because it gets passed to `#[allow(...)]` in
+// `standard_lint!(...)` as a part of `standard_lint!`'s internal check. That would then fail (under
+// outer `#![forbid(unknown_lints)]`). We used to support that by having a special branch in
+// `standard_lint!` macro for `unknown_lints` itself, but that could introduce a human mistake.
 //
-// `#![cfg_attr(check_missing_docs_xxx, deny(rustdoc::missing_docs_xxx)]`
+// Also, it would break consumer crates when some lints wouldn't exist anymore, or if there were a
+// mistake in specifying Rust version ranges for specific lint macros in `allow`.
+//
+// Instead of `#[forbid(unknown_lints)]` here, we have it in tests.
+#![deny(unknown_lints)]
 #![deny(missing_docs, invalid_doc_attributes, unused_doc_comments)]
 #![cfg_attr(
     unstable_feature, // "unstable_feature" comes from ../build.rs
@@ -26,6 +30,22 @@ use proc_macro::{Delimiter, Group, Ident, Punct, Spacing, Span, TokenStream, Tok
 mod wrapper_macros;
 
 mod auxiliary;
+
+/* // @TODO
+// When panic_old_on_floating_toolchain` feature is turned on, then our proc macros generate
+// `#[deprecated = panic!("...")]` - NOT in the definition of the proc macro (before its `fn`), but
+// in the code generated.
+mod restrict_floating_toolchain_pof {
+    macro_rules! generate_code_as_if_from_proc_macro {
+        () => {
+            //#[forbid(deprecated)] // This `forbid` has no effect on the consumer!
+            //#[deprecated(note = "Deprecated or removed, AND on a floating toolchain, AND restrict_floating_toolchain.")]
+            #[deprecated = panic!("PANI")]
+            #[allow(dead_code)]
+            fn f() {}
+        };
+    }
+}*/
 
 /// [`TokenStream`] consisting of one hash character: `#`. It serves as the leading character of the
 /// injected code (just left of the injected "[allow(...)]").
@@ -55,7 +75,7 @@ fn get_allow() -> TokenTree {
 /// because such a proc macro representation is a Group of Ident, and when transformed by
 /// `to_string()` (`or format!(...)`), it gets one space inserted on each side of `::`.
 ///
-/// Instead, `lint_path` contains no spaces. For example: `clippy::all`.
+/// Instead, `lint_path` contains no spaces. For example: `clippy::almost_swapped`.
 ///
 /// For our purpose only. (It can contain only one pair of colons `::`, and NOT at the very
 /// beginning.)
@@ -110,7 +130,6 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
     // any attribute parameters (which we don't support - so then we could mention the fact in the
     // below generated rustdoc /// comment about what is being aliased.)
     ( $lint_path:path, $new_macro_name:ident ) => {
-        // @TODO generate a doc attribute instead of a comment:
         #[doc = "Alias to `#[allow("]
         #[doc = stringify!($lint_path)]
         #[doc = ")]`."]
@@ -119,6 +138,9 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
             given_attrs: ::proc_macro::TokenStream,
             item: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
+            // Clippy lints that have configuration (few of them) don't accept the config values as
+            // any attribute parameters. See
+            // https://doc.rust-lang.org/nightly/clippy/configuration.html.
             assert!(
                 given_attrs.is_empty(),
                 "Do not pass any attribute parameters."
