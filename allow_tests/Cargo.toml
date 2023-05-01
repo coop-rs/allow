@@ -1,13 +1,16 @@
 [package]
 name = "allow_tests"
-version = "0.1.1"
+
+# Let's keep this the same as versions of `allow_prefixed` and `allow` in [dependencies] below.
+version = "0.1.5"
+
 edition = "2021" # because of 1.63
 rust-version = "1.63" # because of https://github.com/oli-obk/ui_test
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-allow = { path = "../allow", version = "0.1.*" }
+# A wildcard star * for the patch number could work. But prefer exactness (to simplify
+# troubleshooting). (That is, once we are at `1.*.*` or higher.)
+allow_prefixed = { path = "../allow_prefixed", version = "0.1.5" }
 
 [dev-dependencies]
 ui_test = "0.8.*"

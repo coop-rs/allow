@@ -1,13 +1,20 @@
 [package]
 name = "allow_internal"
+
+# NOT necessarily the same as version of `allow` and `allow_prefixed`, because `allow_internal`
+# changes much less.
 version = "0.1.1"
+
 edition = "2018"
 rust-version = "1.45" # See explanation in `allow` crate's Cargo.toml
+
+description = "Internal proc macros, for 'allow' and 'allow_prefixed' crates only."
+
+# Same across allow, allow_preferred and allow_internal:
 authors = ["Peter Kehl <peter.kehl@gmail.com>"]
 # TODO development-tools?
 categories = ["development-tools", "rust-patterns"]
 keywords = ["lint", "lints", "linting"]
-description = "Internal proc macros, for 'allow' crate only"
 documentation = "https://docs.rs/allow_internal"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
@@ -16,8 +23,6 @@ readme = "../README.md"
 
 [lib]
 proc-macro = true
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 

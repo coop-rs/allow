@@ -1,4 +1,4 @@
-//! NOT for public use. Only to be used by `allow` crate.
+//! NOT for public use. Only to be used by `allow_prefixed` crate.
 
 // @TODO maybe not needed here?:
 #![deny(rustdoc::missing_docs)]
@@ -64,8 +64,9 @@ fn generate_allow_attribute_macro_definition_from_iter(
         lint_name_input.collect::<Vec<_>>()
     );
 
-    // Note: Do NOT prefix the generated Rust invocation (from `allow` itself) in the following
-    // with `crate::` like: `crate::generate_allow_attribute_macro_definition_internal!(...);`
+    // Note: Do NOT prefix the generated Rust invocation (from `allow_prefixed` itself) in the
+    // following with `crate::` like:
+    // `crate::generate_allow_attribute_macro_definition_internal!(...);` That fails!
     let generate_internal = TokenTree::Ident(Ident::new(
         "generate_allow_attribute_macro_definition_internal",
         Span::call_site(),

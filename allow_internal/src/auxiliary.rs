@@ -3,7 +3,7 @@
 use proc_macro::{TokenStream, TokenTree};
 use std::iter::FromIterator;
 
-// Duplicated in both `allow` and `allow_internal` crates. Not ideal, but easier to manage than
+// Duplicated in both `allow_prefixed` and `allow_internal` crates. Not ideal, but easier to manage than
 // having a third crate on crates.io.
 //
 // Unlike `wrapper_macros.rs` symlink in `allow_tests`, this does NOT use a symlink, so it does

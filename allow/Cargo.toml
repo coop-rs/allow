@@ -1,37 +1,42 @@
 [package]
 name = "allow"
-version = "0.1.4"
+
+# Did you also update version in
+# - ../allow_prefixed
+# - ../allow_tests
+# - ../allow_tests/tests/internal_checks/incorrect_lint - TODO confirm
+# - [dependencies] > allow_prefixed below?
+version = "0.1.5"
+
 edition = "2018"
-# Because of https://github.com/dtolnay/rustversion we can't support before 1.31. However, to use
-# `::allow_internal::path_to_str_literal!($lint_path)` we also need proc macros in expression
-# positions: https://github.com/rust-lang/rust/pull/68717. Hence, we require 1.45+.
-#
-# See also ../README.md.
-rust-version = "1.45"
+rust-version = "1.45" # See explanation in `allow` crate's Cargo.toml
+
+build = "build.rs"
+
+description = "Alias/label lints (to disable) with your intentions. Reexported from allow_prefixed, grouped under rustc::, clippy:: and rustdoc:: modules."
+
+# Same across allow, allow_preferred and allow_internal:
 authors = ["Peter Kehl <peter.kehl@gmail.com>"]
 # TODO development-tools?
 categories = ["development-tools", "rust-patterns"]
 keywords = ["lint", "lints", "linting"]
-description = "Alias/label lints (to disable) with your intentions"
-documentation = "https://docs.rs/allow_internal"
+documentation = "https://docs.rs/allow"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
 homepage = "https://github.com/coop-rs/allow"
 readme = "../README.md"
-build = "build.rs"
-
-[lib]
-proc-macro = true
-test = true     # we have unit tests
-doctest = false # but no doc tests
-
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 rustversion = "1.0"
-allow_internal = { path = "../allow_internal", version = "0.1.1" }
+# A wildcard star * for the patch number could work. But prefer exactness (to simplify
+# troubleshooting). (That is, once we are at `1.*.*` or higher.)
+allow_prefixed = { path = "../allow_prefixed", version = "0.1.5" }
 
 [build-dependencies]
 rustversion = "1.0"
-cargo-toolchain = "0.1.0"
+
+# FEATURES:
+#
+# disable_nightly_lints, panic_old_on_floating_toolchain and quiet_old_on_floating_toolchain are
+# passed to `allow_preferred` as-is, regardless of the Rust version or whether your default/selected
+# toolchain is a floating one (stable/beta/nightly).

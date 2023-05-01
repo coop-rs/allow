@@ -1,7 +1,17 @@
 [package]
 name = "incorrect_lint"
-version = "0.1.0"
+
+# @TODO revisit, then update here and in Cargo.toml of `allow_prefixed` and `allow`:
+#
+# Let's keep this the same as versions of `allow_internal` (see [dependencies] below).
+#
+# OR:
+#
+# Let's keep this the same as versions of `allow_prefixed` and `allow`.
+version = "0.1.1"
+# version = "0.1.5"
+
 edition = "2021"
 
 [dependencies]
-allow_internal = { path = "../../../../allow_internal" }
+allow_internal = { path = "../../../../allow_internal", version = "0.1.1" }
