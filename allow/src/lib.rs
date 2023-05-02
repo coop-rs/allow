@@ -5,7 +5,9 @@
 //! under clippy:: and rustdoc:: modules.
 
 #![forbid(unknown_lints)]
-#![deny(missing_docs, invalid_doc_attributes, unused_doc_comments)]
+#![cfg_attr(has_rustdoc_lints, deny(rustdoc::missing_docs))]
+#![cfg_attr(can_check_doc_attributes, deny(invalid_doc_attributes))]
+#![deny(unused_doc_comments)]
 #![cfg_attr(
     unstable_feature, // "unstable_feature" comes from ../build.rs
     feature(

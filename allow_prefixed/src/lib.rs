@@ -12,7 +12,9 @@
 //
 // Instead of `#[forbid(unknown_lints)]` here, we have it in tests.
 #![deny(unknown_lints)]
-#![deny(missing_docs, invalid_doc_attributes, unused_doc_comments)]
+#![cfg_attr(has_rustdoc_lints, deny(rustdoc::missing_docs))]
+#![cfg_attr(can_check_doc_attributes, deny(invalid_doc_attributes))]
+#![deny(unused_doc_comments)]
 #![cfg_attr(
     unstable_feature, // "unstable_feature" comes from ../build.rs
     feature(
@@ -114,26 +116,17 @@ fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
     )))
 }
 
-/// NOT for public use. "Used" only by
-/// [`allow_internal::generate_allow_attribute_macro_definition_standard`] and
-/// [`allow_internal::generate_allow_attribute_macro_definition_prefixed`] macros. Those macros
-/// don't invoke this, but instead they generate code that invokes it.
-///
-/// This generates a definition of a `proc` attribute macro to allow (suppress a warning for) the
-/// given lint. The proc macro will have the same name as the given `lint_path`, except that any
-/// package-like separators (pairs of colons) :: are replaced with an underscore _.
-///
-/// Param `lint_path` must NOT contain any whitespace, and it can contain max. one pair of colons
-/// `::` (for `clippy::` or `rustdoc::` lints).
+/// NOT for public use. See [generate_allow_attribute_macro_definition_internal].
 #[allow(unused_macros)]
-macro_rules! generate_allow_attribute_macro_definition_internal {
+macro_rules! generate_allow_attribute_macro_definition_internal_without_docs {
     // @TODO consider an (optional) macro parameter, indicating whether the original lint accepts
     // any attribute parameters (which we don't support - so then we could mention the fact in the
     // below generated rustdoc /// comment about what is being aliased.)
-    ( $lint_path:path, $new_macro_name:ident ) => {
-        #[doc = "Alias to `#[allow("]
-        #[doc = stringify!($lint_path)]
-        #[doc = ")]`."]
+    //
+    // $doc is used for rustdoc of the generated proc macro; it must be an `&str`-like literal or
+    // expression - for example, a result of `stringify!`
+    ( $lint_path:path, $new_macro_name:ident, $doc:expr ) => {
+        #[doc = $doc]
         #[proc_macro_attribute]
         pub fn $new_macro_name(
             given_attrs: ::proc_macro::TokenStream,
@@ -159,6 +152,35 @@ macro_rules! generate_allow_attribute_macro_definition_internal {
                 item,
             ])*/
         }
+    };
+}
+
+/// NOT for public use. "Used" only by
+/// [`allow_internal::generate_allow_attribute_macro_definition_standard`] and
+/// [`allow_internal::generate_allow_attribute_macro_definition_prefixed`] macros. Those macros
+/// don't invoke this, but instead they generate code that invokes it.
+///
+/// This generates a definition of a `proc` attribute macro to allow (suppress a warning for) the
+/// given lint. The proc macro will have the same name as the given `lint_path`, except that any
+/// package-like separators (pairs of colons) :: are replaced with an underscore _.
+///
+/// Param `lint_path` must NOT contain any whitespace, and it can contain max. one pair of colons
+/// `::` (for `clippy::` or `rustdoc::` lints).
+#[cfg(attributes_can_invoke_macros)]
+macro_rules! generate_allow_attribute_macro_definition_internal {
+    ( $lint_path:path, $new_macro_name:ident ) => {
+        generate_allow_attribute_macro_definition_internal_without_docs!($lint_path, $new_macro_name, stringify!(Alias to #allow($lint_path).));
+    };
+}
+#[cfg(not(attributes_can_invoke_macros))]
+macro_rules! generate_allow_attribute_macro_definition_internal {
+    ( $lint_path:path, $new_macro_name:ident ) => {
+        generate_allow_attribute_macro_definition_internal_without_docs!(
+            $lint_path,
+            $new_macro_name,
+            // If you change the following doc, update the copy in ../../README.md.
+            "Alias to `#[allow(...)]` a lint with a similar name as imported from allow or allow_prefixed."
+        );
     };
 }
 

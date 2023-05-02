@@ -8,6 +8,8 @@ version = "0.1.1"
 edition = "2018"
 rust-version = "1.45" # See explanation in `allow` crate's Cargo.toml
 
+build = "build.rs"
+
 description = "Internal proc macros, for 'allow' and 'allow_prefixed' crates only."
 
 # Same across allow, allow_preferred and allow_internal:
@@ -25,6 +27,9 @@ readme = "../README.md"
 proc-macro = true
 
 [dependencies]
+
+[build-dependencies]
+rustversion = "1.0"
 
 # TODO?
 # [package.metadata.docs.rs]

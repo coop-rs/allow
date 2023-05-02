@@ -1,7 +1,6 @@
 //! NOT for public use. Only to be used by `allow_prefixed` crate.
 
-// @TODO maybe not needed here?:
-#![deny(rustdoc::missing_docs)]
+#![cfg_attr(has_rustdoc_lints, deny(rustdoc::missing_docs))]
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::iter::FromIterator; // TODO remove if we upgrade Rust edition

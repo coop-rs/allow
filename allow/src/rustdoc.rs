@@ -2,6 +2,7 @@
 
 // MAINTAINERS: See rustc.rs
 
+#[cfg(has_rustdoc_lints)]
 #[rustfmt::skip]
 pub use allow_prefixed::{
 };
