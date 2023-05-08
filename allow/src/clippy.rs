@@ -1,426 +1,641 @@
 //! `clippy` lint macros, re-exported from [`allow_prefixed`](../allow_prefixed) crate.
 
-// MAINTAINERS: See rustc.rs
+// MAINTAINERS:
+//
+// 1. See rustc.rs
+// 2. Do not keep/seek notes on lints renamed or removed before 1.45. For that see ../../allow_prefixed/src/lib.rs.
 
 // Based on https://rust-lang.github.io/rust-clippy/index.html for 1.45 to master:
 //
-// Any clippy:: lint marked as `rustversion::since(1.44.1)` may have existed earlier, too.
+// Any  lint marked as `rustversion::since(1.44.1)` may have existed earlier, too.
 
-#[rustversion::since(1.45)]
-#[rustfmt::skip]
-pub use allow_prefixed::{
-    clippy_absurd_extreme_comparisons as absurd_extreme_comparisons,
-    clippy_almost_swapped as almost_swapped,
-    clippy_approx_constant as approx_constant,
-    clippy_as_conversions as as_conversions,
-    clippy_assertions_on_constants as assertions_on_constants,
-    clippy_assign_op_pattern as assign_op_pattern,
-    // clippy::assign_ops is deprecated since at least 1.45
-    clippy_await_holding_lock as await_holding_lock,
-    clippy_bad_bit_mask as bad_bit_mask,
-    clippy_bind_instead_of_map as bind_instead_of_map,
-    // clippy::blacklisted_name has been renamed to `clippy::disallowed_names`
-    clippy_blocks_in_if_conditions as blocks_in_if_conditions,
-    clippy_bool_comparison as bool_comparison,
-    clippy_borrow_interior_mutable_const as borrow_interior_mutable_const,
-    clippy_borrowed_box as borrowed_box,
-    clippy_boxed_local as boxed_local,
-    clippy_builtin_type_shadow as builtin_type_shadow,
-    clippy_cargo_common_metadata as cargo_common_metadata,
-    clippy_cast_lossless as cast_lossless,
-    clippy_cast_possible_truncation as cast_possible_truncation,
-    clippy_cast_possible_wrap as cast_possible_wrap,
-    clippy_cast_precision_loss as cast_precision_loss,
-    clippy_cast_ptr_alignment as cast_ptr_alignment,
-    clippy_cast_ref_to_mut as cast_ref_to_mut,
-    clippy_cast_sign_loss as cast_sign_loss,
-    clippy_char_lit_as_u8 as char_lit_as_u8,
-    clippy_chars_last_cmp as chars_last_cmp,
-    clippy_chars_next_cmp as chars_next_cmp,
-    clippy_checked_conversions as checked_conversions,
-    clippy_clone_double_ref as clone_double_ref,
-    clippy_clone_on_copy as clone_on_copy,
-    clippy_clone_on_ref_ptr as clone_on_ref_ptr,
-    clippy_cmp_nan as cmp_nan,
-    clippy_cmp_null as cmp_null,
-    clippy_cmp_owned as cmp_owned,
-    clippy_cognitive_complexity as cognitive_complexity,
-    clippy_collapsible_if as collapsible_if,
-    clippy_comparison_chain as comparison_chain,
-    clippy_copy_iterator as copy_iterator,
-    clippy_crosspointer_transmute as crosspointer_transmute,
-    clippy_dbg_macro as dbg_macro,
-    clippy_debug_assert_with_mut_call as debug_assert_with_mut_call,
-    clippy_decimal_literal_representation as decimal_literal_representation,
-    clippy_declare_interior_mutable_const as declare_interior_mutable_const,
-    clippy_default_trait_access as default_trait_access,
-    clippy_deprecated_cfg_attr as deprecated_cfg_attr,
-    clippy_deprecated_semver as deprecated_semver,
-    clippy_deref_addrof as deref_addrof,
-    // clippy::derive_hash_xor_eq has been renamed to `clippy::derived_hash_with_manual_eq`
-    clippy_diverging_sub_expression as diverging_sub_expression,
-    clippy_doc_markdown as doc_markdown,
-    clippy_double_comparisons as double_comparisons,
-    clippy_double_must_use as double_must_use,
-    clippy_double_neg as double_neg,
-    clippy_double_parens as double_parens,
-    clippy_drop_copy as drop_copy,
-    clippy_drop_ref as drop_ref,
-    clippy_duplicate_underscore_argument as duplicate_underscore_argument,
-    clippy_duration_subsec as duration_subsec,
-    clippy_else_if_without_else as else_if_without_else,
-    clippy_empty_enum as empty_enum,
-    clippy_empty_line_after_outer_attr as empty_line_after_outer_attr,
-    clippy_empty_loop as empty_loop,
-    clippy_enum_clike_unportable_variant as enum_clike_unportable_variant,
-    clippy_enum_glob_use as enum_glob_use,
-    clippy_enum_variant_names as enum_variant_names,
-    clippy_eq_op as eq_op,
-    clippy_erasing_op as erasing_op,
-    // clippy::eval_order_dependence has been renamed to `clippy::mixed_read_write_in_expression`
-    clippy_excessive_precision as excessive_precision,
-    clippy_exit as exit,
-    clippy_expect_fun_call as expect_fun_call,
-    clippy_expect_used as expect_used,
-    clippy_expl_impl_clone_on_copy as expl_impl_clone_on_copy,
-    clippy_explicit_counter_loop as explicit_counter_loop,
-    clippy_explicit_deref_methods as explicit_deref_methods,
-    clippy_explicit_into_iter_loop as explicit_into_iter_loop,
-    clippy_explicit_iter_loop as explicit_iter_loop,
-    clippy_explicit_write as explicit_write,
-    // clippy::extend_from_slice is deprecated since at least 1.44.1
-    clippy_extra_unused_lifetimes as extra_unused_lifetimes,
-    clippy_fallible_impl_from as fallible_impl_from,
-    clippy_filetype_is_file as filetype_is_file,
-    // clippy::filter_map has been removed: this lint has been replaced by `manual_filter_map`, a
-    // more specific (and prefixless) lint.
-    clippy_filter_map_next as filter_map_next,
-    clippy_filter_next as filter_next,
-    // clippy::find_map has been removed: this lint has been replaced by `manual_find_map`, a more
-    // specific (and prefixless) lint.
-    clippy_flat_map_identity as flat_map_identity,
-    clippy_float_arithmetic as float_arithmetic,
-    clippy_float_cmp as float_cmp,
-    clippy_float_cmp_const as float_cmp_const,
-    clippy_fn_address_comparisons as fn_address_comparisons,
-    clippy_fn_params_excessive_bools as fn_params_excessive_bools,
-    clippy_fn_to_numeric_cast as fn_to_numeric_cast,
-    clippy_fn_to_numeric_cast_with_truncation as fn_to_numeric_cast_with_truncation,
-    clippy_for_kv_map as for_kv_map,
-    // for_loop_over_option is removed since 1.45
-    //
-    // for_loop_over_result is removed since 1.45
-    //
-    // clippy::for_loops_over_fallibles has been renamed to (prefixless) `for_loops_over_fallibles`
-    clippy_forget_copy as forget_copy,
-    clippy_forget_ref as forget_ref,
-    clippy_future_not_send as future_not_send,
-    clippy_get_last_with_len as get_last_with_len,
-    clippy_get_unwrap as get_unwrap,
-    clippy_identity_op as identity_op,
-    clippy_if_let_mutex as if_let_mutex,
-    // clippy::if_let_redundant_pattern_matching is deprecated since at least 1.45
-    //
-    // clippy::if_let_some_result has been renamed to `clippy::match_result_ok`
-    clippy_if_not_else as if_not_else,
-    clippy_if_same_then_else as if_same_then_else,
-    clippy_ifs_same_cond as ifs_same_cond,
-    clippy_implicit_hasher as implicit_hasher,
-    clippy_implicit_return as implicit_return,
-    clippy_implicit_saturating_sub as implicit_saturating_sub,
-    clippy_imprecise_flops as imprecise_flops,
-    clippy_inconsistent_digit_grouping as inconsistent_digit_grouping,
-    clippy_indexing_slicing as indexing_slicing,
-    clippy_ineffective_bit_mask as ineffective_bit_mask,
-    clippy_inefficient_to_string as inefficient_to_string,
-    clippy_infallible_destructuring_match as infallible_destructuring_match,
-    clippy_infinite_iter as infinite_iter,
-    clippy_inherent_to_string as inherent_to_string,
-    clippy_inherent_to_string_shadow_display as inherent_to_string_shadow_display,
-    clippy_inline_always as inline_always,
-    clippy_inline_fn_without_body as inline_fn_without_body,
-    clippy_int_plus_one as int_plus_one,
-    clippy_integer_arithmetic as integer_arithmetic,
-    clippy_integer_division as integer_division,
-    // clippy::into_iter_on_array is deprecated since at least 1.45
-    clippy_into_iter_on_ref as into_iter_on_ref,
-    // clippy::invalid_atomic_ordering has been renamed to (prefixless) `invalid_atomic_ordering`
-    //
-    // clippy::invalid_ref is deprecated since at least 1.44.1
-    clippy_invalid_regex as invalid_regex,
-    clippy_invalid_upcast_comparisons as invalid_upcast_comparisons,
-    clippy_invisible_characters as invisible_characters,
-    clippy_items_after_statements as items_after_statements,
-    clippy_iter_cloned_collect as iter_cloned_collect,
-    clippy_iter_next_loop as iter_next_loop,
-    clippy_iter_nth as iter_nth,
-    clippy_iter_nth_zero as iter_nth_zero,
-    clippy_iter_skip_next as iter_skip_next,
-    clippy_iterator_step_by_zero as iterator_step_by_zero,
-    clippy_just_underscores_and_digits as just_underscores_and_digits,
-    clippy_large_const_arrays as large_const_arrays,
-    clippy_large_enum_variant as large_enum_variant,
-    clippy_large_stack_arrays as large_stack_arrays,
-    clippy_len_without_is_empty as len_without_is_empty,
-    clippy_len_zero as len_zero,
-    clippy_let_and_return as let_and_return,
-    clippy_let_underscore_lock as let_underscore_lock,
-    clippy_let_underscore_must_use as let_underscore_must_use,
-    clippy_let_unit_value as let_unit_value,
-    clippy_linkedlist as linkedlist,
-    // clippy::logic_bug has been renamed to `clippy::overly_complex_bool_expr`
-    clippy_lossy_float_literal as lossy_float_literal,
-    clippy_macro_use_imports as macro_use_imports,
-    clippy_main_recursion as main_recursion,
-    clippy_manual_async_fn as manual_async_fn,
-    clippy_manual_memcpy as manual_memcpy,
-    clippy_manual_non_exhaustive as manual_non_exhaustive,
-    clippy_manual_saturating_arithmetic as manual_saturating_arithmetic,
-    clippy_manual_swap as manual_swap,
-    clippy_many_single_char_names as many_single_char_names,
-    clippy_map_clone as map_clone,
-    clippy_map_entry as map_entry,
-    clippy_map_flatten as map_flatten,
-    clippy_map_unwrap_or as map_unwrap_or,
-    clippy_match_as_ref as match_as_ref,
-    clippy_match_bool as match_bool,
-    clippy_match_on_vec_items as match_on_vec_items,
-    clippy_match_overlapping_arm as match_overlapping_arm,
-    clippy_match_ref_pats as match_ref_pats,
-    clippy_match_same_arms as match_same_arms,
-    clippy_match_single_binding as match_single_binding,
-    clippy_match_wild_err_arm as match_wild_err_arm,
-    clippy_match_wildcard_for_single_variants as match_wildcard_for_single_variants,
-    clippy_maybe_infinite_iter as maybe_infinite_iter,
-    // clippy::mem_discriminant_non_enum has been renamed to (prefixless) `enum_intrinsics_non_enums`
-    clippy_mem_forget as mem_forget,
-    clippy_mem_replace_option_with_none as mem_replace_option_with_none,
-    clippy_mem_replace_with_default as mem_replace_with_default,
-    clippy_mem_replace_with_uninit as mem_replace_with_uninit,
-    clippy_min_max as min_max,
-    // clippy::misaligned_transmute is deprecated since at least 1.44.1
-    clippy_mismatched_target_os as mismatched_target_os,
-    clippy_misrefactored_assign_op as misrefactored_assign_op,
-    clippy_missing_const_for_fn as missing_const_for_fn,
-    clippy_missing_docs_in_private_items as missing_docs_in_private_items,
-    clippy_missing_errors_doc as missing_errors_doc,
-    clippy_missing_inline_in_public_items as missing_inline_in_public_items,
-    clippy_missing_safety_doc as missing_safety_doc,
-    clippy_mistyped_literal_suffixes as mistyped_literal_suffixes,
-    clippy_mixed_case_hex_literals as mixed_case_hex_literals,
-    clippy_module_inception as module_inception,
-    clippy_module_name_repetitions as module_name_repetitions,
-    clippy_modulo_arithmetic as modulo_arithmetic,
-    clippy_modulo_one as modulo_one,
-    clippy_multiple_crate_versions as multiple_crate_versions,
-    clippy_multiple_inherent_impl as multiple_inherent_impl,
-    clippy_must_use_candidate as must_use_candidate,
-    clippy_must_use_unit as must_use_unit,
-    clippy_mut_from_ref as mut_from_ref,
-    clippy_mut_mut as mut_mut,
-    clippy_mut_range_bound as mut_range_bound,
-    clippy_mutable_key_type as mutable_key_type,
-    clippy_mutex_atomic as mutex_atomic,
-    clippy_mutex_integer as mutex_integer,
-    clippy_naive_bytecount as naive_bytecount,
-    clippy_needless_bool as needless_bool,
-    clippy_needless_borrow as needless_borrow,
-    clippy_needless_borrowed_reference as needless_borrowed_reference,
-    clippy_needless_collect as needless_collect,
-    clippy_needless_continue as needless_continue,
-    clippy_needless_doctest_main as needless_doctest_main,
-    clippy_needless_lifetimes as needless_lifetimes,
-    clippy_needless_pass_by_value as needless_pass_by_value,
-    clippy_needless_range_loop as needless_range_loop,
-    clippy_needless_return as needless_return,
-    clippy_needless_update as needless_update,
-    clippy_neg_cmp_op_on_partial_ord as neg_cmp_op_on_partial_ord,
-    clippy_neg_multiply as neg_multiply,
-    clippy_never_loop as never_loop,
-    clippy_new_ret_no_self as new_ret_no_self,
-    clippy_new_without_default as new_without_default,
-    clippy_no_effect as no_effect,
-    clippy_non_ascii_literal as non_ascii_literal,
-    clippy_nonminimal_bool as nonminimal_bool,
-    clippy_nonsensical_open_options as nonsensical_open_options,
-    clippy_not_unsafe_ptr_arg_deref as not_unsafe_ptr_arg_deref,
-    clippy_ok_expect as ok_expect,
-    clippy_op_ref as op_ref,
-    clippy_option_as_ref_deref as option_as_ref_deref,
-    clippy_option_env_unwrap as option_env_unwrap,
-    clippy_option_map_or_none as option_map_or_none,
-    clippy_option_map_unit_fn as option_map_unit_fn,
-    // option_map_unwrap_or is removed since 1.45.0 TODO check
-    //
-    // option_mapw_unwrap_or_else is removed since 1.45.0 TODO check
-    clippy_option_option as option_option,
-    // option_unwrap_used is removed since 1.45.0 TODO check
-    clippy_or_fun_call as or_fun_call,
-    clippy_out_of_bounds_indexing as out_of_bounds_indexing,
-    clippy_overflow_check_conditional as overflow_check_conditional,
-    clippy_panic as panic,
-    // clippy::panic_params has been renamed to (prefixless)
-    clippy_panicking_unwrap as panicking_unwrap,
-    clippy_partialeq_ne_impl as partialeq_ne_impl,
-    clippy_path_buf_push_overwrite as path_buf_push_overwrite,
-    clippy_possible_missing_comma as possible_missing_comma,
-    clippy_precedence as precedence,
-    clippy_print_literal as print_literal,
-    clippy_print_stdout as print_stdout,
-    clippy_print_with_newline as print_with_newline,
-    clippy_println_empty_string as println_empty_string,
-    clippy_ptr_arg as ptr_arg,
-    clippy_ptr_offset_with_cast as ptr_offset_with_cast,
-    // clippy::pub_enum_variant_names has been removed. set the `avoid-breaking-exported-api` config
-    // option to `false` to enable the `enum_variant_names` lint for public items. (Probably a
-    // prefixless lint; `allow_prefixed` and `allow` crates don't support attribute parameters.)
-    clippy_question_mark as question_mark,
-    clippy_range_minus_one as range_minus_one,
-    clippy_range_plus_one as range_plus_one,
-    // clippy::range_step_by_zero is deprecated since at least 1.44.1
-    clippy_range_zip_with_len as range_zip_with_len,
-    clippy_redundant_allocation as redundant_allocation,
-    clippy_redundant_clone as redundant_clone,
-    clippy_redundant_closure as redundant_closure,
-    clippy_redundant_closure_call as redundant_closure_call,
-    clippy_redundant_closure_for_method_calls as redundant_closure_for_method_calls,
-    clippy_redundant_field_names as redundant_field_names,
-    clippy_redundant_pattern as redundant_pattern,
-    clippy_redundant_pattern_matching as redundant_pattern_matching,
-    clippy_redundant_pub_crate as redundant_pub_crate,
-    clippy_redundant_static_lifetimes as redundant_static_lifetimes,
-    // clippy::ref_in_deref has been renamed to clippy::needless_borrow
-    //
-    // clippy::regex_macro has been removed
-    //
-    // clippy::replace_consts is deprecated since 1.45
-    clippy_rest_pat_in_fully_bound_structs as rest_pat_in_fully_bound_structs,
-    // result_expect_used has been removed since 1.45 TODO check
-    clippy_result_map_or_into_option as result_map_or_into_option,
-    clippy_result_map_unit_fn as result_map_unit_fn,
-    // result_map_unwrap_or_else is removed since 1.45 TODO check
-    //
-    // result_unwrap_used is removed since 1.45 TODO check
-    //
-    // reverse_range_loop is removed since 1.45 TODO check
-    clippy_reversed_empty_ranges as reversed_empty_ranges,
-    clippy_same_functions_in_if_condition as same_functions_in_if_condition,
-    clippy_search_is_some as search_is_some,
-    clippy_serde_api_misuse as serde_api_misuse,
-    clippy_shadow_reuse as shadow_reuse,
-    clippy_shadow_same as shadow_same,
-    clippy_shadow_unrelated as shadow_unrelated,
-    clippy_short_circuit_statement as short_circuit_statement,
-    // clippy::should_assert_eq is deprecated since at least 1.44.1
-    clippy_should_implement_trait as should_implement_trait,
-    clippy_similar_names as similar_names,
-    clippy_single_char_pattern as single_char_pattern,
-    clippy_single_component_path_imports as single_component_path_imports,
-    clippy_single_match as single_match,
-    clippy_single_match_else as single_match_else,
-    clippy_skip_while_next as skip_while_next,
-    clippy_slow_vector_initialization as slow_vector_initialization,
-    // clippy::str_to_string is deprecated since at least 1.44.1
-    clippy_string_add as string_add,
-    clippy_string_add_assign as string_add_assign,
-    clippy_string_extend_chars as string_extend_chars,
-    clippy_string_lit_as_bytes as string_lit_as_bytes,
-    // clippy::string_to_string is deprecated since at least 1.44.1
-    clippy_struct_excessive_bools as struct_excessive_bools,
-    clippy_suboptimal_flops as suboptimal_flops,
-    clippy_suspicious_arithmetic_impl as suspicious_arithmetic_impl,
-    clippy_suspicious_assignment_formatting as suspicious_assignment_formatting,
-    clippy_suspicious_else_formatting as suspicious_else_formatting,
-    clippy_suspicious_map as suspicious_map,
-    clippy_suspicious_op_assign_impl as suspicious_op_assign_impl,
-    clippy_suspicious_unary_op_formatting as suspicious_unary_op_formatting,
-    clippy_tabs_in_doc_comments as tabs_in_doc_comments,
-    clippy_temporary_assignment as temporary_assignment,
-    // clippy::temporary_cstring_as_ptr is renamed to (prefixless) temporary_cstring_as_ptr
-    clippy_to_digit_is_some as to_digit_is_some,
-    clippy_todo as todo,
-    clippy_too_many_arguments as too_many_arguments,
-    clippy_too_many_lines as too_many_lines,
-    clippy_toplevel_ref_arg as toplevel_ref_arg,
-    clippy_transmute_bytes_to_str as transmute_bytes_to_str,
-    clippy_transmute_float_to_int as transmute_float_to_int,
-    clippy_transmute_int_to_bool as transmute_int_to_bool,
-    clippy_transmute_int_to_char as transmute_int_to_char,
-    clippy_transmute_int_to_float as transmute_int_to_float,
-    clippy_transmute_ptr_to_ptr as transmute_ptr_to_ptr,
-    clippy_transmute_ptr_to_ref as transmute_ptr_to_ref,
-    clippy_transmuting_null as transmuting_null,
-    clippy_trivial_regex as trivial_regex,
-    clippy_trivially_copy_pass_by_ref as trivially_copy_pass_by_ref,
-    clippy_try_err as try_err,
-    clippy_type_complexity as type_complexity,
-    clippy_type_repetition_in_bounds as type_repetition_in_bounds,
-    clippy_unicode_not_nfc as unicode_not_nfc,
-    clippy_unimplemented as unimplemented,
-    clippy_uninit_assumed_init as uninit_assumed_init,
-    clippy_unit_arg as unit_arg,
-    clippy_unit_cmp as unit_cmp,
-    // clippy::unknown_clippy_lints is renamed to (prefixless rustc lint) unknown_lints
-    clippy_unnecessary_cast as unnecessary_cast,
-    clippy_unnecessary_filter_map as unnecessary_filter_map,
-    clippy_unnecessary_fold as unnecessary_fold,
-    clippy_unnecessary_mut_passed as unnecessary_mut_passed,
-    clippy_unnecessary_operation as unnecessary_operation,
-    clippy_unnecessary_unwrap as unnecessary_unwrap,
-    clippy_unneeded_field_pattern as unneeded_field_pattern,
-    clippy_unneeded_wildcard_pattern as unneeded_wildcard_pattern,
-    clippy_unreachable as unreachable,
-    clippy_unreadable_literal as unreadable_literal,
-    clippy_unsafe_derive_deserialize as unsafe_derive_deserialize,
-    clippy_unsafe_removed_from_name as unsafe_removed_from_name,
-    // clippy::unsafe_vector_initialization is deprecated since at least 1.44.1
-    clippy_unseparated_literal_suffix as unseparated_literal_suffix,
-    clippy_unsound_collection_transmute as unsound_collection_transmute,
-    // clippy::unstable_as_mut_slice is deprecated since at least 1.44.1
-    //
-    // clippy::unstable_as_slice is deprecated since at least 1.44.1
-    //
-    // clippy::unused_collect is deprecated since at least 1.44.1
-    clippy_unused_io_amount as unused_io_amount,
-    clippy_unused_self as unused_self,
-    clippy_unused_unit as unused_unit,
-    clippy_unwrap_used as unwrap_used,
-    clippy_use_debug as use_debug,
-    clippy_use_self as use_self,
-    clippy_used_underscore_binding as used_underscore_binding,
-    clippy_useless_asref as useless_asref,
-    clippy_useless_attribute as useless_attribute,
-    clippy_useless_conversion as useless_conversion,
-    clippy_useless_format as useless_format,
-    clippy_useless_let_if_seq as useless_let_if_seq,
-    clippy_useless_transmute as useless_transmute,
-    clippy_useless_vec as useless_vec,
-    clippy_vec_box as vec_box,
-    clippy_verbose_bit_mask as verbose_bit_mask,
-    clippy_verbose_file_reads as verbose_file_reads,
-    clippy_vtable_address_comparisons as vtable_address_comparisons,
-    clippy_while_immutable_condition as while_immutable_condition,
-    clippy_while_let_loop as while_let_loop,
-    clippy_while_let_on_iterator as while_let_on_iterator,
-    clippy_wildcard_dependencies as wildcard_dependencies,
-    clippy_wildcard_enum_match_arm as wildcard_enum_match_arm,
-    clippy_wildcard_imports as wildcard_imports,
-    clippy_wildcard_in_or_patterns as wildcard_in_or_patterns,
-    clippy_write_literal as write_literal,
-    clippy_write_with_newline as write_with_newline,
-    // clippy::writeln_empty_string is removed: set the `avoid-breaking-exported-api` config option
-    // to `false` to enable the `wrong_self_convention` lint for public items. (Probably a
-    // prefixless lint; `allow_prefixed` and `allow` crates don't support attribute parameters.)
-    //
-    // clippy::wrong_pub_self_convention has been removed: set the `avoid-breaking-exported-api`
-    // config option to `false` to enable the `wrong_self_convention` lint for public items.
-    // (Probably a prefixless lint; `allow_prefixed` and `allow` crates don't support attribute
-    // parameters.)
-    clippy_wrong_self_convention as wrong_self_convention,
-    clippy_wrong_transmute as wrong_transmute,
-    clippy_zero_divided_by_zero as zero_divided_by_zero,
-    clippy_zero_prefixed_literal as zero_prefixed_literal,
-    clippy_zero_ptr as zero_ptr,
-    // clippy::zero_width_space renamed in 1.49 to clippy::invisible_characters
-    clippy_zst_offset as zst_offset,
-};
+use paste::paste;
+
+macro_rules! export_since {
+    ( $version:literal, $($unprefixed:ident),* ) => {
+        paste! {
+            #[rustversion::since($version)]
+            pub use allow_prefixed::{
+                $(
+                    [<clippy_ $unprefixed>] as $unprefixed,
+                )*
+            };
+        }
+    };
+}
+
+macro_rules! export {
+    ( $($unprefixed:ident),* ) => {
+        export_since!( 1.45, $($unprefixed),* );
+    }
+}
+
+export!(absurd_extreme_comparisons);
+export_since!(1.64, alloc_instead_of_core);
+export_since!(1.69, allow_attributes);
+export_since!(1.61, allow_attributes_without_reason);
+export_since!(1.68, almost_complete_range);
+export!(almost_swapped, approx_constant);
+export_since!(1.64, arithmetic_side_effects);
+export!(as_conversions);
+export_since!(1.66, as_ptr_cast_mut);
+export_since!(1.63, as_underscore);
+export!(assertions_on_constants);
+export_since!(1.64, assertions_on_result_states);
+export!(assign_op_pattern);
+export_since!(1.48, async_yields_async);
+export_since!(1.62, await_holding_invalid_type);
+export!(await_holding_lock);
+export_since!(1.49, await_holding_refcell_ref);
+export!(bad_bit_mask, bind_instead_of_map);
+export_since!(1.47, blanket_clippy_restriction_lints);
+export!(blocks_in_if_conditions);
+export_since!(1.53, bool_assert_comparison);
+export!(bool_comparison);
+export_since!(1.65, bool_to_int_with_if);
+export_since!(1.60, borrow_as_ptr);
+export_since!(1.63, borrow_deref_ref);
+export!(borrow_interior_mutable_const, borrowed_box);
+export_since!(1.57, box_collection);
+export_since!(1.66, box_default);
+export!(boxed_local);
+export_since!(1.53, branches_sharing_code);
+export!(builtin_type_shadow);
+export_since!(1.62, bytes_count_to_len);
+export_since!(1.52, bytes_nth);
+export!(cargo_common_metadata);
+export_since!(1.51, case_sensitive_file_extension_comparisons);
+export_since!(1.62, cast_abs_to_unsigned);
+export_since!(1.61, cast_enum_constructor, cast_enum_truncation);
+export!(cast_lossless);
+export_since!(1.66, cast_nan_to_int);
+export!(
+    cast_possible_truncation,
+    cast_possible_wrap,
+    cast_precision_loss,
+    cast_ptr_alignment,
+    cast_ref_to_mut,
+    cast_sign_loss
+);
+export_since!(1.61, cast_slice_different_sizes);
+export_since!(1.65, cast_slice_from_raw_parts);
+export!(
+    char_lit_as_u8,
+    chars_last_cmp,
+    chars_next_cmp,
+    checked_conversions
+);
+export_since!(1.69, clear_with_drain);
+export!(
+    clone_double_ref,
+    clone_on_copy,
+    clone_on_ref_ptr,
+    cloned_instead_of_copied
+);
+export!(cmp_nan);
+export!(cmp_null, cmp_owned, cognitive_complexity);
+export_since!(1.51, collapsible_else_if);
+export!(collapsible_if);
+export_since!(1.50, collapsible_match);
+export_since!(1.65, collapsible_str_replace);
+export_since!(1.69, collection_is_never_read);
+export!(comparison_chain);
+export_since!(1.49, comparison_to_empty);
+export!(copy_iterator);
+export_since!(1.62, crate_in_macro_def);
+export_since!(1.48, create_dir);
+export!(
+    crosspointer_transmute,
+    dbg_macro,
+    debug_assert_with_mut_call,
+    decimal_literal_representation,
+    declare_interior_mutable_const
+);
+export_since!(1.64, default_instead_of_iter_empty);
+export_since!(1.52, default_numeric_fallback);
+export!(default_trait_access);
+export_since!(1.60, default_union_representation);
+export!(deprecated_cfg_attr, deprecated_semver, deref_addrof);
+export_since!(1.61, deref_by_slicing);
+export_since!(1.57, derivable_impls);
+export_since!(1.47, derive_ord_xor_partial_ord);
+export_since!(1.63, derive_partial_eq_without_eq);
+export!(derived_hash_with_manual_eq);
+export_since!(1.66, disallowed_macros);
+export_since!(1.49, disallowed_methods);
+export!(disallowed_names);
+export_since!(1.55, disallowed_script_idents);
+export_since!(1.55, disallowed_types);
+export!(diverging_sub_expression);
+export_since!(1.63, doc_link_with_quotes);
+export!(
+    doc_markdown,
+    double_comparisons,
+    double_must_use,
+    double_neg,
+    double_parens,
+    drop_copy
+);
+export_since!(1.62, drop_non_drop);
+export!(drop_ref);
+export_since!(1.63, duplicate_mod);
+export!(
+    duplicate_underscore_argument,
+    duration_subsec,
+    else_if_without_else
+);
+export_since!(1.62, empty_drop);
+export!(empty_enum, empty_line_after_outer_attr, empty_loop);
+export_since!(1.62, empty_structs_with_brackets);
+export!(
+    enum_clike_unportable_variant,
+    enum_glob_use,
+    enum_variant_names,
+    eq_op
+);
+export_since!(1.57, equatable_if_let);
+export!(erasing_op);
+export_since!(1.62, err_expect);
+export!(excessive_precision);
+export_since!(1.51, exhaustive_enums, exhaustive_structs);
+export!(exit, expect_fun_call, expect_used, expl_impl_clone_on_copy);
+export_since!(1.64, explicit_auto_deref);
+export!(
+    explicit_counter_loop,
+    explicit_deref_methods,
+    explicit_into_iter_loop,
+    explicit_iter_loop,
+    explicit_write
+);
+export_since!(1.55, extend_with_drain);
+export!(extra_unused_lifetimes);
+export_since!(1.69, extra_unused_type_parameters);
+export!(fallible_impl_from);
+export_since!(1.49, field_reassign_with_default);
+export!(filetype_is_file);
+export_since!(1.52, filter_map_identity);
+export!(filter_map_next, filter_next, flat_map_identity);
+export_since!(1.53, flat_map_option);
+export!(float_arithmetic, float_cmp, float_cmp_const);
+export_since!(1.48, float_equality_without_abs);
+export!(fn_address_comparisons);
+export_since!(1.68, fn_null_check);
+export!(fn_params_excessive_bools, fn_to_numeric_cast);
+export_since!(1.58, fn_to_numeric_cast_any);
+export!(fn_to_numeric_cast_with_truncation, for_kv_map, forget_copy);
+export_since!(1.62, forget_non_drop);
+export!(forget_ref);
+export_since!(1.58, format_in_format_args);
+export_since!(1.62, format_push_string);
+export_since!(1.49, from_iter_instead_of_collect);
+export_since!(1.51, from_over_into);
+export_since!(1.67, from_raw_with_void_ptr);
+export_since!(1.52, from_str_radix_10);
+export!(future_not_send);
+export_since!(1.63, get_first);
+export!(
+    get_last_with_len,
+    get_unwrap,
+    identity_op,
+    if_let_mutex,
+    if_not_else,
+    if_same_then_else
+);
+export_since!(1.53, if_then_some_else_none);
+export!(ifs_same_cond);
+export_since!(1.69, impl_trait_in_params);
+export_since!(1.52, implicit_clone);
+export!(implicit_hasher, implicit_return);
+export_since!(1.66, implicit_saturating_add);
+export!(
+    implicit_saturating_sub,
+    imprecise_flops,
+    inconsistent_digit_grouping
+);
+export_since!(1.52, inconsistent_struct_constructor);
+export_since!(1.59, index_refutable_slice);
+export!(
+    indexing_slicing,
+    ineffective_bit_mask,
+    inefficient_to_string,
+    infallible_destructuring_match,
+    infinite_iter,
+    inherent_to_string,
+    inherent_to_string_shadow_display
+);
+export_since!(1.59, init_numbered_fields);
+export!(inline_always);
+export_since!(1.49, inline_asm_x86_att_syntax, inline_asm_x86_intel_syntax);
+export!(inline_fn_without_body);
+export_since!(1.51, inspect_for_each);
+export!(
+    int_plus_one,
+    integer_arithmetic,
+    integer_division,
+    into_iter_on_ref
+);
+export_since!(1.53, invalid_null_ptr_usage);
+export!(invalid_regex, invalid_upcast_comparisons);
+export_since!(1.64, invalid_utf8_in_unchecked);
+export_since!(1.49, invisible_characters);
+export_since!(1.62, is_digit_ascii_radix);
+export!(items_after_statements);
+export_since!(1.70, items_after_test_module);
+export!(iter_cloned_collect);
+export_since!(1.52, iter_count);
+export_since!(1.66, iter_kv_map);
+export!(iter_next_loop);
+export_since!(1.46, iter_next_slice);
+export_since!(1.57, iter_not_returning_iterator);
+export!(iter_nth, iter_nth_zero);
+export_since!(1.65, iter_on_empty_collections);
+export_since!(1.65, iter_on_single_items);
+export_since!(1.60, iter_overeager_cloned);
+export!(iter_skip_next);
+export_since!(1.61, iter_with_drain);
+export!(
+    iterator_step_by_zero,
+    just_underscores_and_digits,
+    large_const_arrays,
+    large_digit_groups,
+    large_enum_variant
+);
+export_since!(1.68, large_futures);
+export_since!(1.62, large_include_file);
+export!(large_stack_arrays);
+export_since!(1.49, large_types_passed_by_value);
+export!(len_without_is_empty, len_zero, let_and_return);
+export_since!(1.67, let_underscore_future);
+export!(let_underscore_lock, let_underscore_must_use);
+export_since!(1.69, let_underscore_untyped);
+export!(let_unit_value);
+export_since!(1.69, let_with_type_underscore);
+export_since!(1.70, lines_filter_map_ok);
+export!(
+    linkedlist,
+    lossy_float_literal,
+    macro_use_imports,
+    main_recursion
+);
+export_since!(1.57, manual_assert);
+export!(manual_async_fn);
+export_since!(1.60, manual_bits);
+export_since!(1.66, manual_clamp);
+export_since!(1.66, manual_filter);
+export_since!(1.51, manual_filter_map);
+export_since!(1.64, manual_find);
+export_since!(1.51, manual_find_map);
+export_since!(1.52, manual_flatten);
+export_since!(1.65, manual_instant_elapsed);
+export_since!(1.67, manual_is_ascii_check, manual_let_else);
+export_since!(1.70, manual_main_separator_str);
+export_since!(1.52, manual_map);
+export!(manual_memcpy, manual_non_exhaustive);
+export_since!(1.49, manual_ok_or, manual_range_contains);
+export_since!(1.64, manual_rem_euclid, manual_retain);
+export!(manual_saturating_arithmetic);
+export_since!(1.70, manual_slice_size_calculation);
+export_since!(1.57, manual_split_once);
+export_since!(1.54, manual_str_repeat);
+export_since!(1.65, manual_string_new);
+export_since!(1.48, manual_strip);
+export!(manual_swap);
+export_since!(1.49, manual_unwrap_or);
+export_since!(1.70, manual_while_let_some);
+export!(many_single_char_names, map_clone);
+export_since!(1.49, map_collect_result_unit);
+export!(map_entry);
+export_since!(1.48, map_err_ignore);
+export!(map_flatten);
+export_since!(1.47, map_identity);
+export!(map_unwrap_or, match_as_ref, match_bool);
+export_since!(1.47, match_like_matches_macro);
+export!(match_on_vec_items, match_overlapping_arm, match_ref_pats);
+export_since!(1.57, match_result_ok);
+export!(match_same_arms, match_single_binding);
+export_since!(1.58, match_str_case_mismatch);
+export!(
+    match_wild_err_arm,
+    match_wildcard_for_single_variants,
+    maybe_infinite_iter,
+    mem_forget,
+    mem_replace_option_with_none,
+    mem_replace_with_default,
+    mem_replace_with_uninit,
+    min_max,
+    mismatched_target_os
+);
+export_since!(1.63, mismatching_type_param_order);
+export_since!(1.67, misnamed_getters);
+export!(misrefactored_assign_op);
+export_since!(1.69, missing_assert_message);
+export!(missing_const_for_fn, missing_docs_in_private_items);
+export_since!(1.55, missing_enforced_import_renames);
+export!(missing_errors_doc, missing_inline_in_public_items);
+export_since!(1.51, missing_panics_doc);
+export!(missing_safety_doc);
+export_since!(1.61, missing_spin_loop);
+export_since!(1.66, missing_trait_methods);
+export!(
+    mistyped_literal_suffixes,
+    mixed_case_hex_literals,
+    mixed_read_write_in_expression
+);
+export_since!(1.57, mod_module_files);
+export!(
+    module_inception,
+    module_name_repetitions,
+    modulo_arithmetic,
+    modulo_one
+);
+export_since!(1.65, multi_assignments);
+export!(multiple_crate_versions, multiple_inherent_impl);
+export_since!(1.69, multiple_unsafe_ops_per_block);
+export!(must_use_candidate, must_use_unit, mut_from_ref, mut_mut);
+export_since!(1.49, mut_mutex_lock);
+export!(
+    mut_range_bound,
+    mutable_key_type,
+    mutex_atomic,
+    mutex_integer,
+    naive_bytecount
+);
+export_since!(1.47, needless_arbitrary_self_type);
+export_since!(1.54, needless_bitwise_bool);
+export!(needless_bool);
+export_since!(1.69, needless__bool_assign);
+export!(
+    needless_borrow,
+    needless_borrowed_reference,
+    needless_collect,
+    needless_continue,
+    needless_doctest_main
+);
+export_since!(1.53, needless_for_each);
+export_since!(1.59, needless_late_init);
+export!(needless_lifetimes);
+export_since!(1.61, needless_match);
+export_since!(1.57, needless_option_as_deref);
+export_since!(1.62, needless_option_take);
+export_since!(1.63, needless_parens_on_range_literals);
+export!(needless_pass_by_value);
+export_since!(1.51, needless_question_mark);
+export!(needless_range_loop, needless_return);
+export_since!(1.59, needless_splitn);
+export!(needless_update, neg_cmp_op_on_partial_ord, neg_multiply);
+export_since!(1.57, negative_feature_names);
+export!(never_loop, new_ret_no_self, new_without_default, no_effect);
+export_since!(1.63, no_effect_replace);
+export_since!(1.58, no_effect_underscore_binding);
+export_since!(1.69, no_mangle_with_rust_abi);
+export!(non_ascii_literal);
+export_since!(1.53, non_octal_unix_permissions);
+export_since!(1.57, non_send_fields_in_send_ty);
+export!(nonminimal_bool, nonsensical_open_options);
+export_since!(1.55, nonstandard_macro_braces);
+export!(not_unsafe_ptr_arg_deref);
+export_since!(1.64, obfuscated_if_else);
+export_since!(1.59, octal_escapes);
+export!(ok_expect);
+export_since!(1.61, only_used_in_recursion);
+export!(op_ref, option_as_ref_deref, option_env_unwrap);
+export_since!(1.53, option_filter_map);
+export_since!(1.47, option_if_let_else);
+export!(
+    option_map_or_none,
+    option_map_unit_fn,
+    option_option,
+    or_fun_call
+);
+export_since!(1.61, or_then_unwrap);
+export!(
+    out_of_bounds_indexing,
+    overflow_check_conditional,
+    overly_complex_bool_expr,
+    panic
+);
+export_since!(1.48, panic_in_result_fn);
+export!(panicking_unwrap);
+export_since!(1.66, partial_pub_fields);
+export!(partialeq_ne_impl);
+export_since!(1.65, partialeq_to_none);
+export!(path_buf_push_overwrite);
+export_since!(1.47, pattern_type_mismatch);
+export_since!(1.68, permissions_set_readonly_false);
+export!(possible_missing_comma, precedence);
+export_since!(1.61, print_in_format_impl);
+export!(print_literal);
+export_since!(1.50, print_stderr);
+export!(print_stdout, print_with_newline, println_empty_string);
+export!(ptr_arg);
+export_since!(1.51, ptr_as_ptr);
+export_since!(1.49, ptr_eq);
+export!(ptr_offset_with_cast);
+export_since!(1.62, pub_use);
+export!(question_mark);
+export_since!(1.69, question_mark_used);
+export!(range_minus_one, range_plus_one, range_zip_with_len);
+export_since!(1.48, rc_buffer);
+export_since!(1.63, rc_clone_in_vec_init);
+export_since!(1.55, rc_mutex);
+export_since!(1.63, read_zero_byte_vec);
+export_since!(1.48, recursive_format_impl);
+export!(redundant_allocation);
+export_since!(1.69, redundant_async_block);
+export!(
+    redundant_clone,
+    redundant_closure,
+    redundant_closure_call,
+    redundant_closure_for_method_calls
+);
+export_since!(1.50, redundant_else);
+export_since!(1.57, redundant_feature_names);
+export!(
+    redundant_field_names,
+    redundant_pattern,
+    redundant_pattern_matching,
+    redundant_pub_crate
+);
+export_since!(1.51, redundant_slicing);
+export!(redundant_static_lifetimes);
+export_since!(1.54, ref_binding_to_reference);
+export_since!(1.49, ref_option_ref);
+export_since!(1.47, repeat_once);
+export!(rest_pat_in_fully_bound_structs);
+export_since!(1.65, result_large_err);
+export!(result_map_or_into_option, result_map_unit_fn);
+export_since!(1.49, result_unit_err);
+export_since!(1.59, return_self_not_must_use);
+export!(reversed_empty_ranges, same_functions_in_if_condition);
+export_since!(1.47, same_item_push);
+export_since!(1.57, same_name_method);
+export!(search_is_some);
+export_since!(1.67, seek_from_current, seek_to_start_instead_of_rewind);
+export_since!(1.48, self_assignment);
+export_since!(1.55, self_named_constructors);
+export_since!(1.57, self_named_module_files);
+export_since!(1.52, semicolon_if_nothing_returned);
+export_since!(1.68, semicolon_inside_block, semicolon_outside_block);
+export_since!(1.58, separated_literal_suffix);
+export!(
+    serde_api_misuse,
+    shadow_reuse,
+    shadow_same,
+    shadow_unrelated
+);
+export!(short_circuit_statement, should_implement_trait);
+export_since!(1.60, significant_drop_in_scrutinee);
+export_since!(1.69, significant_drop_tightening);
+export!(similar_names);
+export_since!(1.49, single_char_add_str);
+export_since!(1.60, single_char_lifetime_names);
+export!(single_char_pattern, single_component_path_imports);
+export_since!(1.49, single_element_loop);
+export!(single_match, single_match_else);
+export_since!(1.50, size_of_in_element_count);
+export_since!(1.68, size_of_ref);
+export!(skip_while_next, slow_vector_initialization);
+export_since!(1.47, stable_sort_primitive);
+export_since!(1.64, std_instead_of_alloc, std_instead_of_core);
+export!(
+    str_to_string,
+    string_add,
+    string_add_assign,
+    string_extend_chars
+);
+export_since!(1.50, string_from_utf8_as_bytes);
+export!(string_lit_as_bytes);
+export_since!(1.58, string_slice);
+export!(string_to_string);
+export_since!(1.55, strlen_on_c_strings);
+export!(
+    struct_excessive_bools,
+    suboptimal_flops,
+    suspicious_arithmetic_impl,
+    suspicious_assignment_formatting
+);
+export_since!(1.69, suspicious_command_arg_space);
+export_since!(1.70, suspicious_doc_comments);
+export!(
+    suspicious_else_formatting,
+    suspicious_map,
+    suspicious_op_assign_impl
+);
+export_since!(1.50, suspicious_operation_groupings);
+export_since!(1.54, suspicious_splitn);
+export_since!(1.65, suspicious_to_owned);
+export!(suspicious_unary_op_formatting);
+export_since!(1.67, suspicious_xor_used_as_pow);
+export_since!(1.63, swap_ptr_to_ref);
+export!(tabs_in_doc_comments, temporary_assignment);
+export_since!(1.70, tests_outside_test_module);
+export!(to_digit_is_some);
+export_since!(1.58, to_string_in_format_args);
+export!(todo, too_many_arguments, too_many_lines, toplevel_ref_arg);
+export_since!(1.58, trailing_empty_array);
+export_since!(1.47, trait_duplication_in_bounds);
+export!(
+    transmute_bytes_to_str,
+    transmute_float_to_int,
+    transmute_int_to_bool,
+    transmute_int_to_char,
+    transmute_int_to_float
+);
+export_since!(1.69, transmute_int_to_non_zero);
+export_since!(1.68, transmute_null_to_fn);
+export_since!(1.58, transmute_num_to_bytes);
+export!(transmute_ptr_to_ptr, transmute_ptr_to_ref);
+export_since!(1.60, transmute_undefined_repr);
+export_since!(1.47, transmutes_expressible_as_ptr_casts);
+export!(transmuting_null);
+export_since!(1.62, trim_split_whitespace);
+export!(
+    trivial_regex,
+    trivially_copy_pass_by_ref,
+    try_err,
+    type_complexity,
+    type_repetition_in_bounds
+);
+export_since!(1.67, unchecked_duration_subtraction);
+export_since!(1.58, undocumented_unsafe_blocks);
+export_since!(1.49, undropped_manually_drops);
+export!(unicode_not_nfc, unimplemented, uninit_assumed_init);
+export_since!(1.58, uninit_vec);
+export_since!(1.66, uninlined_format_args);
+export!(unit_arg, unit_cmp);
+export_since!(1.58, unit_hash);
+export_since!(1.47, unit_return_expecting_ord);
+export_since!(1.70, unnecessary_box_returns);
+export!(unnecessary_cast, unnecessary_filter_map);
+export_since!(1.61, unnecessary_find_map);
+export!(unnecessary_fold);
+export_since!(1.61, unnecessary_join);
+export_since!(1.48, unnecessary_lazy_evaluations);
+export!(unnecessary_mut_passed, unnecessary_operation);
+export_since!(1.62, unnecessary_owned_empty_stringss);
+export_since!(1.67, unnecessary_safety_comment, unnecessary_safety_doc);
+export_since!(1.53, unnecessary_self_imports);
+export_since!(1.46, unnecessary_sort_by);
+export_since!(1.70, unnecessary_struct_initialization);
+export_since!(1.59, unnecessary_to_owned);
+export!(unnecessary_unwrap);
+export_since!(1.50, unnecessary_wraps);
+export!(unneeded_field_pattern, unneeded_wildcard_pattern);
+export_since!(1.46, unnested_or_patterns);
+export!(
+    unreachable,
+    unreadable_literal,
+    unsafe_derive_deserialize,
+    unsafe_removed_from_name,
+    unseparated_literal_suffix,
+    unsound_collection_transmute
+);
+export_since!(1.54, unused_async);
+export_since!(1.66, unused_format_specs);
+export!(unused_io_amount);
+export_since!(1.65, unused_peekable);
+export_since!(1.63, unused_rounding);
+export!(unused_self, unused_unit);
+export_since!(1.49, unusual_byte_groupings);
+export_since!(1.48, unwrap_in_result);
+export_since!(1.56, unwrap_or_else_default);
+export!(unwrap_used);
+export_since!(1.51, upper_case_acronyms);
+export!(
+    use_debug,
+    use_self,
+    used_underscore_binding,
+    useless_asref,
+    useless_attribute,
+    useless_conversion,
+    useless_format,
+    useless_let_if_seq,
+    useless_transmute,
+    useless_vec,
+    vec_box
+);
+export_since!(1.51, vec_init_then_push);
+export_since!(1.46, vec_resize_to_zero);
+export!(
+    verbose_bit_mask,
+    verbose_file_reads,
+    vtable_address_comparisons,
+    while_immutable_condition,
+    while_let_loop,
+    while_let_on_iterator,
+    wildcard_dependencies,
+    wildcard_enum_match_arm,
+    wildcard_imports,
+    wildcard_in_or_patterns,
+    write_literal,
+    write_with_newline,
+    writeln_empty_string,
+    wrong_self_convention,
+    wrong_transmute,
+    zero_divided_by_zero,
+    zero_prefixed_literal,
+    zero_ptr
+);
+export_since!(1.50, zero_sized_map_values);
+// zero_width_space renamed in 1.49 to invisible_characters
+export!(zst_offset);

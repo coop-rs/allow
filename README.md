@@ -61,6 +61,10 @@ for them at anytime. Your team could have a prelude-like module, or crate, re-ex
   obsolete and removing them based on Rust version is not automated. Mistakes happen. Help report
   them and fix them.
 
+  The good news: Thanks to our test suite, fixes for any mistakes mean only extending the range of
+  compatible Rust versions (for any lint in question), but never restricting the range. Hence, any
+  fixes are backward compatible.
+
 ### Out of scope
 
 - **some** Rust versions, like 1.63, 1.65.0, 1.66.1, 1.67.0, 1.67.1, 1.68.0, 1.68.2 (at least so for
@@ -75,6 +79,8 @@ for them at anytime. Your team could have a prelude-like module, or crate, re-ex
   `#![allow(...)]` and only at crate level. That means (in general) much fewer repetitions than
   `#[allow(...)]` sprinkled around the code (granular).of these - and even if you do, 
 
+  ---- <- TODO
+
   You can give thumbs up to [rust-lang/rust #54726](https://github.com/rust-lang/rust/issues/54726).
   Suppose it is implemented. However, top level attributes would most likely have to come before any
   `use` aliases, so we wouldn't be able to alias macros generating `#![allow(...)]` anyway,
@@ -84,14 +90,13 @@ for them at anytime. Your team could have a prelude-like module, or crate, re-ex
   `#![crate::lints::non_ascii_idents_third_party]`. To be seen.)
 - `Beta` version of `rustc` specifics. `Beta` version incubation is only for 6 weeks. Or, would you
   help maintain this?
-- Rust older than `1.45`. If there is high demand, we could potentially support down to 1.31 (needed
-  by [`rustversion`](https://crates.io/crates/rustversion) crate.) But then we'd have an ugly and
-  more complicated proc macro.
+- Rust older than `1.45`. If there is high demand, we could potentially support down to `1.31`
+  (needed by [`rustversion`](https://crates.io/crates/rustversion) crate.) But then we'd have an
+  ugly and more complicated proc macro.
   
   If you would benefit from `allow`, it's most likely when the lints you are suppressing are wide
-  spread. Hence, if you choose to refactor the code, couldn't you as well upgrade it to newer Rust?
-- Parameterized lints (very few - maybe only in `clippy::`?). If you'd like that, you'll have some
-  low level proc macro work.
+  spread. Hence, if you choose to refactor so much code, wouldn't you as well like to upgrade it to
+  newer Rust?
 - Custom lints (such as [with
 Dylint](https://blog.trailofbits.com/2021/11/09/write-rust-lints-without-forking-clippy/)). Possible
 in principle - will you commit to maintain it?

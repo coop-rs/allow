@@ -1,6 +1,6 @@
-//! Alias/label lints (to disable) with your intentions.
+//! Alias lints (to allow them = suppress their notices), label your intentions.
 //!
-//! Reexported from `allow_prefixed` crate: prefixless (rustc/standard) lints are at the top level
+//! Re-exported from `allow_prefixed` crate: prefixless (rustc/standard) lints are at the top level
 //! and also grouped (duplicated) under `rustc::` module; `clippy` and `rustdoc` lints are grouped
 //! under clippy:: and rustdoc:: modules.
 

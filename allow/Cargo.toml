@@ -28,6 +28,7 @@ readme = "../README.md"
 
 [dependencies]
 rustversion = "1.0"
+paste = "1.*"
 # A wildcard star * for the patch number could work. But prefer exactness (to simplify
 # troubleshooting). (That is, once we are at `1.*.*` or higher.)
 allow_prefixed = { path = "../allow_prefixed", version = "0.1.5" }

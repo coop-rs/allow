@@ -7,7 +7,7 @@
 // - Keep all parts alphabetically sorted.
 // - One entry per line.
 
-// 1. Lints with default level `allow`
+// 1. Lints with default level `allow`. See ../../allow_prefixed/src/lib.rs.
 
 #[rustfmt::skip]
 /// @TODO Does this rustdoc apply/show up anywhere?
@@ -83,7 +83,7 @@ pub use allow_prefixed::{
     variant_size_differences,
 };
 
-// 2. Lints with default level `warn`
+// 2. Lints with default level `warn`. See ../../allow_prefixed/src/lib.rs.
 
 #[rustversion::nightly]
 #[rustfmt::skip]
@@ -128,7 +128,7 @@ pub use allow_prefixed::{
 #[rustversion::nightly]
 #[rustfmt::skip]
 pub use allow_prefixed::{
-    invalid_macro_export_arguments,
+    invalid_macro_export_arguments, //@TODO not on 1.71.0-nightly?!
 };
 #[rustfmt::skip]
 pub use allow_prefixed::{
@@ -202,7 +202,7 @@ pub use allow_prefixed::{
     while_true
 };
 
-// 3. Lints with default level `deny`
+// 3. Lints with default level `deny`. See ../../allow_prefixed/src/lib.rs.
 
 #[rustfmt::skip]
 pub use allow_prefixed::{
@@ -214,7 +214,6 @@ pub use allow_prefixed::{
     deprecated_cfg_attr_crate_type_name,
     enum_intrinsics_non_enums,
     // ill_formed_attribute_input - at crate level only
-    // TODO Rust version
     implied_bounds_entailment,
     incomplete_include,
     ineffective_unstable_trait_impl,
@@ -222,7 +221,7 @@ pub use allow_prefixed::{
 #[rustversion::nightly]
 #[rustfmt::skip]
 pub use allow_prefixed::{
-    invalid_alignment,
+    invalid_alignment,//@TODO not on 1.71.0-nightly?!
 };
 #[rustfmt::skip]
 pub use allow_prefixed::{

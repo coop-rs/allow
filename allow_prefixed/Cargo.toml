@@ -23,7 +23,8 @@ description = "Implementation of 'allow' crate, exported with no prefix (for pre
 authors = ["Peter Kehl <peter.kehl@gmail.com>"]
 # TODO development-tools?
 categories = ["development-tools", "rust-patterns"]
-keywords = ["lint", "lints", "linting"]
+# aliasing OR aliasable
+keywords = ["alias", "lint", "linting", "lints", "semantic"]
 documentation = "https://docs.rs/allow_prefixed"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
