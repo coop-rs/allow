@@ -8,8 +8,7 @@ name = "incorrect_lint"
 # OR:
 #
 # Let's keep this the same as versions of `allow_prefixed` and `allow`.
-version = "0.1.1"
-# version = "0.1.5"
+version = "0.1.5"
 
 edition = "2021"
 
