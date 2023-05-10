@@ -1,8 +1,6 @@
 #![forbid(unknown_lints)]
 
-mod allow_clippy_local {
-    pub use allow_prefixed::clippy_await_holding_lock as await_holding_lock_i_know_better;
-}
+use allow_prefixed::clippy_await_holding_lock as await_holding_lock_i_know_better;
 
 //#[warn(renamed_and_removed_lints)]
 #[test]
@@ -40,5 +38,5 @@ pub fn unused() {
 
 #[allow_prefixed::unused_braces]
 //#[allow::clippy_await_holding_lock]
-#[allow_clippy_local::await_holding_lock_i_know_better]
+#[await_holding_lock_i_know_better]
 fn _unused() {}

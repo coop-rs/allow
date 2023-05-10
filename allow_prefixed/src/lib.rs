@@ -1,7 +1,7 @@
 //! Alias/label lints (to disable) with your intentions.
 //!
 //! Implementation of 'allow' crate, exported with no prefix (for prefixless lints), and with
-//! `clippy_` and `rustoc_` prefixes.
+//! `clippy_` and `rustdoc_` prefixes.
 // We can't have `#![forbid(unknown_lints)]` here, because it gets passed to `#[allow(...)]` in
 // `standard_lint!(...)` as a part of `standard_lint!`'s internal check. That would then fail (under
 // outer `#![forbid(unknown_lints)]`). We used to support that by having a special branch in
@@ -12,7 +12,7 @@
 //
 // Instead of `#[forbid(unknown_lints)]` here, we have it in tests.
 #![deny(unknown_lints)]
-#![cfg_attr(has_rustdoc_lints, deny(rustdoc::missing_docs))]
+#![cfg_attr(has_rustdoc_lints, deny(missing_docs))]
 #![cfg_attr(can_check_doc_attributes, deny(invalid_doc_attributes))]
 #![deny(unused_doc_comments)]
 #![cfg_attr(
@@ -23,6 +23,7 @@
         multiple_supertrait_upcastable, // https://doc.rust-lang.org/beta/unstable-book/language-features/multiple-supertrait-upcastable.html
         must_not_suspend, // https://github.com/rust-lang/rust/issues/83310
         non_exhaustive_omitted_patterns_lint, // https://github.com/rust-lang/rust/issues/89554
+        rustdoc_missing_doc_code_examples, // https://github.com/rust-lang/rust/issues/101730
         strict_provenance, // https://github.com/rust-lang/rust/issues/95228
         test_unstable_lint // https://doc.rust-lang.org/nightly/unstable-book/language-features/test-unstable-lint.html
     )
@@ -52,13 +53,14 @@ mod restrict_floating_toolchain_pof {
 }*/
 
 /// NOT for public use. See [generate_allow_attribute_macro_definition_internal].
-/// 
+///
 /// $doc is used for rustdoc of the generated proc macro; it must be an `&str`-like literal or
 /// expression - for example, a result of `stringify!`
 #[allow(unused_macros)]
 macro_rules! generate_allow_attribute_macro_definition_internal_without_docs {
     ( $lint_path:path, $new_macro_name:ident, $doc:expr ) => {
         #[doc = $doc]
+        //#[doc = "Buf buf."]
         #[proc_macro_attribute]
         pub fn $new_macro_name(
             given_attrs: ::proc_macro::TokenStream,
@@ -315,7 +317,6 @@ standard_lint!(useless_deprecated);
 // According to https://releases.rs/docs/1.52.0/#rustdoc rustdoc:: lints exist since 1.52:
 prefixed_lint_versioned!(1.52, rustdoc::broken_intra_doc_links);
 prefixed_lint_versioned!(1.52, rustdoc::private_intra_doc_links);
-prefixed_lint_versioned!(1.52, rustdoc::missing_docs);
 prefixed_lint_versioned!(1.52, rustdoc::missing_crate_level_docs);
 prefixed_lint_versioned!(1.52, rustdoc::missing_doc_code_examples);
 prefixed_lint_versioned!(1.52, rustdoc::private_doc_tests);

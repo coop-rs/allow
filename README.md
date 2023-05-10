@@ -46,7 +46,7 @@ for them at anytime. Your team could have a prelude-like module, or crate, re-ex
 
 ### Limited scope
 
-- Supporting Rust below `1.63` (down to `1.45`). If we do use
+- Negative build tests for Rust below `1.63` (down to `1.45`). If we do use
 [`ui_test`](https://github.com/oli-obk/ui_test) crate for testing, we can fully test only from Rust
 1.63. Alternatively, could you help implement the negative build tests with
 [`trybuild`](https://github.com/dtolnay/trybuild) crate?

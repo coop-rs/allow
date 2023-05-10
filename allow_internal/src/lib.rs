@@ -1,12 +1,14 @@
 //! NOT for public use. Only to be used by `allow_prefixed` crate.
 
-#![cfg_attr(has_rustdoc_lints, deny(rustdoc::missing_docs))]
+#![cfg_attr(has_rustdoc_lints, deny(missing_docs))]
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
 use std::iter::FromIterator; // TODO remove if we upgrade Rust edition
 
 mod auxiliary;
 
+/// Convert given lint path to a quoted string literal. The path must contain exactly one double
+/// colon `::` separator, which will be replaced with an uderscore inthe result
 #[proc_macro]
 pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
     let mut lint_path_input = lint_path_input.into_iter();
@@ -106,6 +108,8 @@ fn generate_allow_attribute_macro_definition_from_iter(
     //TokenStream::from_iter(tokens) // use if we upgrade Rust min. version, or edition to 2021
 }
 
+/// Like [`generate_allow_attribute_macro_definition_prefixed!`], but generate a macro for a given
+/// standard (prefixless) `rustc` lint. The macro name itself will be the same as the lint name.
 #[proc_macro]
 pub fn generate_allow_attribute_macro_definition_standard(
     lint_name_input: TokenStream,
@@ -113,7 +117,13 @@ pub fn generate_allow_attribute_macro_definition_standard(
     generate_allow_attribute_macro_definition_from_iter(None, lint_name_input.into_iter())
 }
 
-/// Input: prefix::lint_name
+/// Input: prefix::lint_name. Output: Attribute macro code that (when applied) injects
+/// `#[allow(lint_path_input)]`.
+///
+/// `lint_path_input` must contain exactly one separator (a pair of colons `::`).
+///
+/// The macro name will be based on the given lint path, with with double colon separator `::`
+/// replaced with an underscore.
 #[proc_macro]
 pub fn generate_allow_attribute_macro_definition_prefixed(
     lint_path_input: TokenStream,
