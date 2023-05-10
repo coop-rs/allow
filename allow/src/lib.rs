@@ -1,8 +1,9 @@
 //! Alias lints (to allow them = suppress their notices), label your intentions.
 //!
-//! Re-exported from `allow_prefixed` crate: prefixless (rustc/standard) lints are at the top level
-//! and also grouped (duplicated) under `rustc::` module; `clippy` and `rustdoc` lints are grouped
-//! under clippy:: and rustdoc:: modules.
+//! Re-exported from [`allow_prefixed`](https://crates.io/crates/allow_prefixed) crate:
+//! - prefixless (rustc/standard) lints are at the top level and also grouped (duplicated) under
+//!   `rustc::` module.
+//! - `clippy` and `rustdoc` lints are grouped under clippy:: and rustdoc:: modules.
 
 #![forbid(unknown_lints)]
 #![cfg_attr(has_rustdoc_lints, deny(rustdoc::missing_docs))]

@@ -158,6 +158,14 @@ pub use allow_prefixed::{
     special_module_name,
     stable_features,
     suspicious_auto_trait_impls,
+};
+#[rustversion::nightly]
+#[rustfmt::skip]
+pub use allow_prefixed::{
+    suspicious_double_ref_op,
+};
+#[rustfmt::skip]
+pub use allow_prefixed::{
     temporary_cstring_as_ptr,
     trivial_bounds,
     type_alias_bounds,

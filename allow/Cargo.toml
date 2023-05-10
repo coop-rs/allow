@@ -6,7 +6,7 @@ name = "allow"
 # - ../allow_tests
 # - ../allow_tests/tests/internal_checks/incorrect_lint - TODO confirm
 # - [dependencies] > allow_prefixed below?
-version = "0.1.5"
+version = "0.2.0"
 
 edition = "2018"
 rust-version = "1.45" # See explanation in `allow` crate's Cargo.toml
@@ -31,7 +31,8 @@ rustversion = "1.0"
 paste = "1.*"
 # A wildcard star * for the patch number could work. But prefer exactness (to simplify
 # troubleshooting). (That is, once we are at `1.*.*` or higher.)
-allow_prefixed = { path = "../allow_prefixed", version = "0.1.5" }
+allow_prefixed = { path = "../allow_prefixed", version = "0.2.0" }
+# allow_prefixed = { path = "../allow_prefixed", version = "0.2.0", features=["no_nightly"] }
 
 [build-dependencies]
 rustversion = "1.0"

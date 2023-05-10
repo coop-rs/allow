@@ -5,7 +5,7 @@ name = "allow_prefixed"
 # - ../allow
 # - ../allow_tests
 # - ../allow_tests/tests/internal_checks/incorrect_lint - TODO confirm
-version = "0.1.5"
+version = "0.1.6"
 
 edition = "2018"
 # Because of https://github.com/dtolnay/rustversion we can't support before 1.31. However, to use
@@ -13,6 +13,10 @@ edition = "2018"
 # positions: https://github.com/rust-lang/rust/pull/68717. Hence, we require 1.45+.
 #
 # See also ../README.md.
+#
+# If we used edition = "2021", we'd have to require Rust 1.56+. For down to Rust 1.45 we need
+# edition 2018.
+#
 rust-version = "1.45"
 
 build = "build.rs"
@@ -30,6 +34,11 @@ license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
 homepage = "https://github.com/coop-rs/allow"
 readme = "../README.md"
+
+[features]
+# if enabled, support the build fails. For experimentation only.
+no_nightly = []
+# nightly = []
 
 [lib]
 proc-macro = true

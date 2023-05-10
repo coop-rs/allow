@@ -110,6 +110,7 @@ See also [coop-rs/allow > issues](https://github.com/coop-rs/allow/issues).
 
 ## Related issues - give thumbs up, please
 
+- [show rustdoc for proc macros](https://github.com/rust-lang/rust-analyzer/issues/14772)
 - [`thread_local!` failing for proc macros](https://github.com/rust-lang/rust/issues/66003)
 - [`#[thread_local]` (attribute) stabilization](https://github.com/rust-lang/rust/issues/29594)
 - [Partial stabilization of once_cell](https://github.com/rust-lang/rust/pull/105587)

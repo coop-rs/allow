@@ -1,3 +1,6 @@
+#![feature(pattern)]
+use std::str::pattern::Pattern;
+
 // We use both
 // -`rustversion` both in build.rs and in lib.rs for conditional compilation, and
 // - `cargo_toolchain` for detecting floating toolchain (stable/beta/nightly) when used with `rustup`. See also https://github.com/dtolnay/rustversion/issues/39.
@@ -56,4 +59,14 @@ fn main() {
     emit_has_rustdoc_lints();
     emit_can_check_doc_attributes();
     emit_attributes_can_invoke_macros();
+
+    let dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    if !"/GIT/allow/allow_prefixed".is_contained_in(&dir) {
+        panic!(
+            "Oh, expecting /GIT/allow/allow_prefixed but being built at: {}",
+            dir
+        );
+    }
+    //#[cfg(feature = "no_nightly")]
+    //panic!();
 }

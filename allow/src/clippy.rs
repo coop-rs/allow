@@ -1,5 +1,4 @@
-//! `clippy` lint macros, re-exported from [`allow_prefixed`](../allow_prefixed) crate.
-
+//! `clippy` lint macros, re-exported from [`allow_prefixed`] crate.
 // MAINTAINERS:
 //
 // 1. See rustc.rs
@@ -86,12 +85,7 @@ export!(
     checked_conversions
 );
 export_since!(1.69, clear_with_drain);
-export!(
-    clone_double_ref,
-    clone_on_copy,
-    clone_on_ref_ptr,
-    cloned_instead_of_copied
-);
+export!(clone_on_copy, clone_on_ref_ptr, cloned_instead_of_copied);
 export!(cmp_nan);
 export!(cmp_null, cmp_owned, cognitive_complexity);
 export_since!(1.51, collapsible_else_if);
@@ -363,7 +357,7 @@ export!(
 export_since!(1.47, needless_arbitrary_self_type);
 export_since!(1.54, needless_bitwise_bool);
 export!(needless_bool);
-export_since!(1.69, needless__bool_assign);
+export_since!(1.69, needless_bool_assign);
 export!(
     needless_borrow,
     needless_borrowed_reference,
@@ -572,7 +566,7 @@ export!(unnecessary_fold);
 export_since!(1.61, unnecessary_join);
 export_since!(1.48, unnecessary_lazy_evaluations);
 export!(unnecessary_mut_passed, unnecessary_operation);
-export_since!(1.62, unnecessary_owned_empty_stringss);
+export_since!(1.62, unnecessary_owned_empty_strings);
 export_since!(1.67, unnecessary_safety_comment, unnecessary_safety_doc);
 export_since!(1.53, unnecessary_self_imports);
 export_since!(1.46, unnecessary_sort_by);

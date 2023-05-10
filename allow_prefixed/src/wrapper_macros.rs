@@ -39,3 +39,10 @@ macro_rules! prefixed_lint_versioned {
         prefixed_lint!($lint_path);
     }; // @TODO initial version - deprecated (or removed?) version
 }
+
+macro_rules! prefixed_lint_nightly {
+    ($lint_path:path) => {
+        #[rustversion::nightly]
+        prefixed_lint!($lint_path);
+    }; // @TODO initial version - deprecated (or removed?) version
+}
