@@ -29,9 +29,16 @@ pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
     TokenStream::from(TokenTree::Literal(Literal::string(&literal)))
 }
 
+/// Generate the code that invokes `generate_allow_attribute_macro_definition_internal` macro, and
+/// as a result it defines an attribute macro for the given lint.
+///
+/// Param `pass_through` indicates whether the result attribute macro should just pass through its
+/// input without injecting `#[allow(lint-name-here)]`. Used for removed/deprecated lints - for
+/// backwards compatibility.
 fn generate_allow_attribute_macro_definition_from_iter(
     lint_prefix: Option<Ident>,
     mut lint_name_input: impl Iterator<Item = TokenTree>,
+    pass_through: bool,
 ) -> TokenStream {
     let mut lint_name = lint_name_input.next().unwrap_or_else(|| {
         panic!("Expecting a lint name (Identifier), but reached the end of the input.")
@@ -40,15 +47,12 @@ fn generate_allow_attribute_macro_definition_from_iter(
     // containing `TokenTree::Ident(_)`.
     //
     // @TODO If we upgrade min. Rust version, test this and eliminate if not needed anymore.
-    match &lint_name {
-        TokenTree::Group(group) => {
-            lint_name = group
-                .stream()
-                .into_iter()
-                .next()
-                .unwrap_or_else(|| panic!("Expecting an Ident in the group."));
-        }
-        _ => (),
+    if let TokenTree::Group(group) = &lint_name {
+        lint_name = group
+            .stream()
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| panic!("Expecting an Ident in the group."));
     }
 
     if !matches!(&lint_name, TokenTree::Ident(_)) {
@@ -87,11 +91,14 @@ fn generate_allow_attribute_macro_definition_from_iter(
         let mut lint_prefix = lint_prefix.to_string();
         lint_prefix.push('_');
         lint_prefix.extend(lint_name.to_string().chars());
-        let lint_name = TokenTree::Ident(Ident::new(&lint_prefix, Span::call_site()));
-        generate_internal_params.push(lint_name);
-    } else {
-        generate_internal_params.push(lint_name);
+        lint_name = TokenTree::Ident(Ident::new(&lint_prefix, Span::call_site()));
     }
+    generate_internal_params.push(lint_name);
+    generate_internal_params.push(TokenTree::Punct(Punct::new(',', Spacing::Joint)));
+    generate_internal_params.push(TokenTree::Ident(Ident::new(
+        &pass_through.to_string(),
+        Span::call_site(),
+    )));
 
     let generate_internal_params_parens = TokenTree::Group(Group::new(
         Delimiter::Parenthesis,
@@ -114,7 +121,7 @@ fn generate_allow_attribute_macro_definition_from_iter(
 pub fn generate_allow_attribute_macro_definition_standard(
     lint_name_input: TokenStream,
 ) -> TokenStream {
-    generate_allow_attribute_macro_definition_from_iter(None, lint_name_input.into_iter())
+    generate_allow_attribute_macro_definition_from_iter(None, lint_name_input.into_iter(), false)
 }
 
 /// Input: prefix::lint_name. Output: Attribute macro code that (when applied) injects
@@ -181,5 +188,5 @@ pub fn generate_allow_attribute_macro_definition_prefixed(
         );
     });
 
-    generate_allow_attribute_macro_definition_from_iter(Some(prefix), group.into_iter())
+    generate_allow_attribute_macro_definition_from_iter(Some(prefix), group.into_iter(), false)
 }

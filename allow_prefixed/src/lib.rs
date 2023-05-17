@@ -57,14 +57,14 @@ mod restrict_floating_toolchain_pof {
 /// $doc is used for rustdoc of the generated proc macro; it must be an `&str`-like literal or
 /// expression - for example, a result of `stringify!`
 #[allow(unused_macros)]
-macro_rules! generate_allow_attribute_macro_definition_internal_without_docs {
-    ( $lint_path:path, $new_macro_name:ident, $doc:expr ) => {
+macro_rules! generate_allow_attribute_macro_definition_internal_with_given_docs {
+    ( $lint_path:path, $new_macro_name:ident, $pass_through:expr, $doc:expr ) => {
         #[doc = $doc]
         //#[doc = "Buf buf."]
         #[proc_macro_attribute]
         pub fn $new_macro_name(
             given_attrs: ::proc_macro::TokenStream,
-            item: ::proc_macro::TokenStream,
+            item_to_be_linted: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
             // Clippy lints that have configuration (few of them) don't accept the config values as
             // any attribute parameters. See
@@ -73,20 +73,25 @@ macro_rules! generate_allow_attribute_macro_definition_internal_without_docs {
                 given_attrs.is_empty(),
                 "Do not pass any attribute parameters."
             );
-            // TODO replace with the below if we upgrade Rust min. version, or edition to 2021
-            let tokens = [
-                $crate::proc_builder::get_hash(),
-                $crate::proc_builder::brackets_allow_lint(::allow_internal::path_to_str_literal!(
-                    $lint_path
-                )),
-                item,
-            ];
-            auxiliary::token_streams_to_stream(&tokens)
-            /*::proc_macro::TokenStream::from_iter([
-                $crate::proc_builder::get_hash(),
-                $crate::proc_builder::brackets_allow_lint(::allow_internal::path_to_str_literal!($lint_path)),
-                item,
-            ])*/
+            // The following if..else will be optimized out in compile time.
+            if $pass_through {
+                item_to_be_linted
+            } else {
+                // TODO replace with the below if we upgrade Rust min. version, or edition to 2021
+                let tokens = [
+                    $crate::proc_builder::get_hash(),
+                    $crate::proc_builder::brackets_allow_lint(
+                        ::allow_internal::path_to_str_literal!($lint_path),
+                    ),
+                    item_to_be_linted,
+                ];
+                auxiliary::token_streams_to_stream(&tokens)
+                /*::proc_macro::TokenStream::from_iter([
+                    $crate::proc_builder::get_hash(),
+                    $crate::proc_builder::brackets_allow_lint(::allow_internal::path_to_str_literal!($lint_path)),
+                    item,
+                ])*/
+            }
         }
     };
 }
@@ -100,20 +105,28 @@ macro_rules! generate_allow_attribute_macro_definition_internal_without_docs {
 /// given lint. The proc macro will have the same name as the given `lint_path`, except that any
 /// package-like separators (pairs of colons) :: are replaced with an underscore _.
 ///
-/// Param `lint_path` must NOT contain any whitespace, and it can contain max. one pair of colons
-/// `::` (for `clippy::` or `rustdoc::` lints).
+/// - Param `lint_path` must NOT contain any whitespace, and it can contain max. one pair of colons
+///   `::` (for `clippy::` or `rustdoc::` lints).
+/// - Param `pass_through`, a boolean, indicates whether the macro is a dummy, passing the code
+///   unmodified. Used for backwards or future compatibility, where the lint doesn't exist anymore,
+///   or doesn't exist yet, for the given Rust version.
 #[cfg(attributes_can_invoke_macros)]
 macro_rules! generate_allow_attribute_macro_definition_internal {
-    ( $lint_path:path, $new_macro_name:ident ) => {
-        generate_allow_attribute_macro_definition_internal_without_docs!($lint_path, $new_macro_name, stringify!(Alias to #allow($lint_path).));
+    ( $lint_path:path, $new_macro_name:ident, $pass_through:expr ) => {
+        generate_allow_attribute_macro_definition_internal_with_given_docs!(
+            $lint_path,
+            $new_macro_name,
+            $pass_through,
+            stringify!(Alias to #[allow($lint_path)].));
     };
 }
 #[cfg(not(attributes_can_invoke_macros))]
 macro_rules! generate_allow_attribute_macro_definition_internal {
-    ( $lint_path:path, $new_macro_name:ident ) => {
-        generate_allow_attribute_macro_definition_internal_without_docs!(
+    ( $lint_path:path, $new_macro_name:ident, $pass_through:expr ) => {
+        generate_allow_attribute_macro_definition_internal_with_given_docs!(
             $lint_path,
             $new_macro_name,
+            $pass_through,
             // If you change the following doc, update the copy in ../../README.md.
             "Alias to `#[allow(...)]` a lint with a similar name as imported from allow or allow_prefixed."
         );
