@@ -13,26 +13,30 @@ rust-version = "1.45" # See explanation in `allow` crate's Cargo.toml
 
 build = "build.rs"
 
-description = "Alias/label lints (to disable) with your intentions. Reexported from allow_prefixed, grouped under rustc::, clippy:: and rustdoc:: modules."
+description = "Alias/label lints (to disable) with your intentions. Re-exported from allow_prefixed, grouped under rustc::, clippy:: and rustdoc:: modules. Standard (rustc) lints are also re-exported at the crate's root."
 
 # Same across allow, allow_preferred and allow_internal:
 authors = ["Peter Kehl <peter.kehl@gmail.com>"]
-# TODO development-tools?
 categories = ["development-tools", "rust-patterns"]
-keywords = ["lint", "lints", "linting"]
+keywords = ["alias", "lint", "linting", "lints", "semantic"]
 documentation = "https://docs.rs/allow"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
 homepage = "https://github.com/coop-rs/allow"
-readme = "../README.md"
+readme = "../README_crates_io.md"
+
+[features]
+# See `nightly` feature of [`allow_prefixed`].
+nightly = ["allow_prefixed/nightly"]
+no_nightly = ["allow_prefixed/no_nightly"]
+silent_past_dummies = ["allow_prefixed/silent_past_dummies"]
+scream_past_dummies = ["allow_prefixed/scream_past_dummies"]
 
 [dependencies]
 rustversion = "1.0"
-paste = "1.*"
 # A wildcard star * for the patch number could work. But prefer exactness (to simplify
 # troubleshooting). (That is, once we are at `1.*.*` or higher.)
-allow_prefixed = { path = "../allow_prefixed", version = "0.2.0" }
-# allow_prefixed = { path = "../allow_prefixed", version = "0.2.0", features=["no_nightly"] }
+allow_prefixed = { path = "../allow_prefixed", version = "0.2.0"}
 
 [build-dependencies]
 rustversion = "1.0"

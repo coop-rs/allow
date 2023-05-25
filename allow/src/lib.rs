@@ -21,9 +21,9 @@
         test_unstable_lint // https://doc.rust-lang.org/nightly/unstable-book/language-features/test-unstable-lint.html
     )
 )]
-pub mod clippy;
-pub mod rustc;
+//pub mod clippy;
+//pub mod rustc;
 pub mod rustdoc;
 
 // Users can choose to access prefixless lints through `rustc::`, or from the top level.
-pub use rustc::*;
+//pub use rustc::*;

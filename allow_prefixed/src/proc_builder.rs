@@ -5,10 +5,10 @@ use crate::auxiliary;
 /// [`TokenStream`] consisting of one hash character: `#`. It serves as the leading character of the
 /// injected code (just left of the injected `#[allow(...)]`).
 pub fn get_hash() -> TokenStream {
-    TokenStream::from(TokenTree::Punct(Punct::new('#', Spacing::Joint)))
+    TokenStream::from(TokenTree::Punct(Punct::new('#', Spacing::Alone)))
 }
 
-fn get_colon() -> TokenTree {
+fn get_colon_joint() -> TokenTree {
     TokenTree::Punct(Punct::new(':', Spacing::Joint))
 }
 
@@ -34,12 +34,16 @@ fn get_allow() -> TokenTree {
 ///
 /// For our purpose only. (It can contain only one pair of colons `::`, and NOT at the very
 /// beginning.)
-pub fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
+pub fn brackets_allow_lint_path(lint_path: &str) -> TokenStream {
     let (prefix_str, lint_str) = match lint_path.find(':') {
         Some(colon_index) => (&lint_path[..colon_index], &lint_path[colon_index + 2..]),
         None => ("", lint_path),
     };
+    brackets_allow_lint_parts(prefix_str, lint_str)
+}
 
+/// Param `lint_str` is an empty string if the lint is prefixless (standard, "rustc" lint).
+pub fn brackets_allow_lint_parts(prefix_str: &str, lint_str: &str) -> TokenStream {
     let prefix_lint = {
         let lint = TokenTree::Ident(Ident::new(lint_str, Span::call_site()));
         if prefix_str.is_empty() {
@@ -51,7 +55,7 @@ pub fn brackets_allow_lint(lint_path: &'static str) -> TokenStream {
                 "rustdoc" => get_rustdoc(),
                 _ => panic!("Unsupported prefix: {}.", prefix_str),
             };
-            let colon = get_colon();
+            let colon = get_colon_joint(); //@TODO check
             auxiliary::token_trees_to_stream(&[prefix, colon.clone(), colon, lint])
             //TokenStream::from_iter([prefix, colon.clone(), colon, lint])
         }

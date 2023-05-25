@@ -1,31 +1,20 @@
-<!-- Maintainers: Keep the following section in sync with README_crates_io.md. -->
+<!-- Maintainers: Keep the following section in sync with README.md. -->
 # Purpose
 
 Aliases for `#[allow(...)]` local lint permissions/suppressions. You can have multiple aliases, each
 with its name - semantic.
 
-<!-- Maintainers: The following is different to  README_crates_io.md: instead of # Alternatives -->
-# Use
+<!-- Maintainers: The following is different to  README.md: instead of # Use -->
+# Alternatives
+- Use [`allow`](https://crates.io/crates/allow) crate for "scoped" aliases, grouped in modules,
+  reflecting the lint paths in Rust. Macros for standard lints are at the crate's root and also
+  re-exported under a module (`rustc::`), and macros for other lints are under their own modules
+  (`clippy::` and `rustdoc::`).
+- Use [`allow_prefixed`](https://crates.io/crates/allow_prefixed) for "prefixed", where standard
+  lints are at the crate's root, and other lints are also under the crate's root, but prefixed with
+  `rustdoc__` and `clippy__`.
 
-- "scoped" aliases, grouped in modules, reflecting the lint paths in Rust. Macros for standard lints
-  are at the crate's root and also re-exported under a module (`rustc::`), and macros for other
-  lints are under their own modules (`clippy::` and `rustdoc::`).
-  - `cargo add allow`, or
-  - in `Cargo.toml`:
-    ```
-    [dependencies]
-    allow = "0.1.5"
-    ```
-- and/or "prefixed", where standard lints are at the crate's root, and other lints are also under
-  the crate's root, but prefixed with `rustdoc__` and `clippy__`.
-  - `cargo add allow_prefixed`, or
-  - in `Cargo.toml`:
-    ```
-    [dependencies]
-    allow_prefixed = "0.1.5"
-    ```
-
-<!-- Maintainers: Keep the rest in sync with README_crates_io.md. -->
+<!-- Maintainers: Keep the rest in sync with README.md. -->
 ## The problem
 
 Let's say you `#[allow(...)]` the same lint (either `rustc` standard (prefixless) lint, or lints

@@ -1,11 +1,12 @@
 //! NOT for public use. Only to be used by `allow_prefixed` crate.
 
-#![cfg_attr(has_rustdoc_lints, deny(missing_docs))]
+#![deny(missing_docs)]
 
-use proc_macro::{Delimiter, Group, Ident, Literal, Punct, Spacing, Span, TokenStream, TokenTree};
+use proc_macro::{Delimiter, Group, Ident, Literal, Span, TokenStream, TokenTree};
 use std::iter::FromIterator; // TODO remove if we upgrade Rust edition
 
 mod auxiliary;
+mod proc_builder;
 
 /// Convert given lint path to a quoted string literal. The path must contain exactly one double
 /// colon `::` separator, which will be replaced with an uderscore inthe result
@@ -43,6 +44,7 @@ fn generate_allow_attribute_macro_definition_from_iter(
     let mut lint_name = lint_name_input.next().unwrap_or_else(|| {
         panic!("Expecting a lint name (Identifier), but reached the end of the input.")
     });
+    // @TODO test in Rust 1.45.2, if the following is not needed then remove:
     // In Rust 1.45.2 and older, `lint_name` here is not `TokenTree::Ident(_)`, but a `Group`
     // containing `TokenTree::Ident(_)`.
     //
@@ -76,27 +78,32 @@ fn generate_allow_attribute_macro_definition_from_iter(
         "generate_allow_attribute_macro_definition_internal",
         Span::call_site(),
     ));
-    let exclamation = TokenTree::Punct(Punct::new('!', Spacing::Joint));
+    let exclamation = proc_builder::get_punct_joint('!');
 
     let mut generate_internal_params = Vec::with_capacity(6);
+    // @TODO
+    // 1. change type of lint_prefix to Option<TokenTree>
+    // 2. clone() it and run a check that it contains exactly one Ident
+    // 3. extract the Ident in the 2nd if {...} below.
     if let Some(lint_prefix) = &lint_prefix {
         generate_internal_params.push(TokenTree::Ident(lint_prefix.clone()));
-        generate_internal_params.push(TokenTree::Punct(Punct::new(':', Spacing::Joint)));
-        generate_internal_params.push(TokenTree::Punct(Punct::new(':', Spacing::Joint)));
+        generate_internal_params.push(proc_builder::get_colon_joint());
+        generate_internal_params.push(proc_builder::get_colon_alone());
     }
     generate_internal_params.push(lint_name.clone());
-    generate_internal_params.push(TokenTree::Punct(Punct::new(',', Spacing::Joint)));
+    generate_internal_params.push(proc_builder::get_punct_alone(','));
 
-    if let Some(lint_prefix) = lint_prefix {
+    if let Some(lint_prefix) = lint_prefix.clone() {
+        //@TODO remove .clone()
         let mut lint_prefix = lint_prefix.to_string();
         lint_prefix.push('_');
         lint_prefix.extend(lint_name.to_string().chars());
         lint_name = TokenTree::Ident(Ident::new(&lint_prefix, Span::call_site()));
     }
     generate_internal_params.push(lint_name);
-    generate_internal_params.push(TokenTree::Punct(Punct::new(',', Spacing::Joint)));
+    generate_internal_params.push(proc_builder::get_punct_alone(','));
     generate_internal_params.push(TokenTree::Ident(Ident::new(
-        &pass_through.to_string(),
+        if pass_through { "true" } else { "false" },
         Span::call_site(),
     )));
 
@@ -108,8 +115,9 @@ fn generate_allow_attribute_macro_definition_from_iter(
         generate_internal,
         exclamation,
         generate_internal_params_parens,
-        TokenTree::Punct(Punct::new(';', Spacing::Joint)),
+        proc_builder::get_punct_alone(';'),
     ];
+
     // TODO remove if we upgrade Rust min. version, or edition to 2021
     auxiliary::token_trees_to_stream(&tokens)
     //TokenStream::from_iter(tokens) // use if we upgrade Rust min. version, or edition to 2021
@@ -124,18 +132,18 @@ pub fn generate_allow_attribute_macro_definition_standard(
     generate_allow_attribute_macro_definition_from_iter(None, lint_name_input.into_iter(), false)
 }
 
-/// Input: prefix::lint_name. Output: Attribute macro code that (when applied) injects
+/// Input: prefix, lint_name. Output: Attribute macro code that (when applied) injects
 /// `#[allow(lint_path_input)]`.
 ///
-/// `lint_path_input` must contain exactly one separator (a pair of colons `::`).
+/// `lint_path_input` must contain exactly one separator: a comma.
 ///
-/// The macro name will be based on the given lint path, with with double colon separator `::`
-/// replaced with an underscore.
+/// The macro name will be based on the given prefix and lint name, concatenated with an underscore
+/// in between.
 #[proc_macro]
 pub fn generate_allow_attribute_macro_definition_prefixed(
-    lint_path_input: TokenStream,
+    prefix_and_lint_name: TokenStream,
 ) -> TokenStream {
-    let mut lint_path_input = lint_path_input.into_iter();
+    let mut prefix_and_lint_name = prefix_and_lint_name.into_iter();
 
     // The expected lint_path_name_input is NOT the same as if generated with:
     //
@@ -145,48 +153,117 @@ pub fn generate_allow_attribute_macro_definition_prefixed(
     // (from well formed invocations) generates only one top-level TokenTree (with exactly one
     // Group).
 
-    let token_tree = lint_path_input.next();
-    let token_tree =
-        token_tree.unwrap_or_else(|| panic!("Expecting lint path, but received an empty input."));
-    let group = match token_tree {
-        TokenTree::Group(group) => group,
-        _ => panic!(
-            "Expecting a TokenTree::Group, but received {:?}.",
-            token_tree
-        ),
-    };
-    let group = group.stream();
-    let mut group = group.into_iter();
-
-    let prefix = group.next().unwrap_or_else(|| {
-        panic!("Expecting a lint prefix (Identifier), but reached the end of the input.")
+    // @TODO re-use - see check_that_prefixed_lint_exists
+    let prefix = prefix_and_lint_name.next().unwrap_or_else(|| {
+        panic!("Expecting lint prefix and lint name, but reached an end of input.")
     });
     let prefix = match prefix {
         TokenTree::Ident(prefix) => prefix,
         _ => panic!(
-            "Expecting a TokenTree::Ident(prefix), but received {:?}.",
+            "Expecting a TokenTree::Ident (of a lint prefix), but received {:?}.",
             prefix
         ),
     };
 
-    (0..2).for_each(|_| {
-        let punct = group.next().unwrap_or_else(|| {
-            panic!("Expecting a colon (Punct ':'...), but reached the end of the input.")
-        });
-        let punct = match punct {
-            TokenTree::Punct(punct) => punct,
-            _ => panic!(
-                "Expecting a TokenTree::Punct(Punct(':'...)), but received {:?}.",
-                punct
-            ),
-        };
-        assert_eq!(
-            punct.as_char(),
-            ':',
-            "Expecting a colon, but received different Punct for '{}'.",
-            punct.as_char()
-        );
+    let comma = prefix_and_lint_name.next().unwrap_or_else(|| {
+        panic!("Expecting a comma after the lint prefix, but received an empty input.")
     });
+    if !matches!(&comma, TokenTree::Punct(p) if p.as_char()==',') {
+        panic!("Expecting a comma, but received {:?}.", comma);
+    }
+    /*
+    let name = prefix_and_lint_name.next().unwrap_or_else(|| panic!("Expecting lint name after the prefix and comma, but reached an end of input."));
+    let name = match name {
+        TokenTree::Ident(name) => name,
+        _ => panic!(
+            "Expecting a TokenTree::Ident (of a lint name), but received {:?}.",
+            name
+        ),
+    };
 
-    generate_allow_attribute_macro_definition_from_iter(Some(prefix), group.into_iter(), false)
+    let mut prefix_and_lint_name = prefix_and_lint_name.peekable();
+    assert!(
+        prefix_and_lint_name.peek().is_none(),
+        "Expecting no more tokens, but received: {:?}.",
+        prefix_and_lint_name.collect::<Vec<_>>()
+    );*/
+
+    generate_allow_attribute_macro_definition_from_iter(Some(prefix), prefix_and_lint_name, false)
+}
+
+/// Generate code like: `#[allow(prefix::lint_name)] const _: () = ();`. Use it together with
+/// `#[deny(unknown_lints)]` to check for any incorrect prefixed lints.
+///
+/// Param `prefix_and_lint_name_without_double_colon` contains a (one level) lint prefix (that is,
+/// either `clippy` or `rustdoc`), and a lint name, separated by a comma. (No double colon `::` -
+/// that will be generated).
+///
+/// When calling this from a `macro_rules!`, you want to capture the prefix and lint name as `tt`
+/// (and NOT as `ident`) metavariable. Otherwise use it with `defile` crate.
+#[proc_macro]
+pub fn check_that_prefixed_lint_exists(
+    prefix_and_lint_name_without_double_colon: TokenStream,
+) -> TokenStream {
+    let mut prefix_and_lint_name_without_double_colon =
+        prefix_and_lint_name_without_double_colon.into_iter();
+
+    let prefix = prefix_and_lint_name_without_double_colon
+        .next()
+        .unwrap_or_else(|| {
+            panic!("Expecting a lint prefix (Identifier), but reached the end of the input.")
+        });
+    let prefix = if let TokenTree::Ident(prefix) = prefix {
+        prefix.to_string()
+    } else {
+        panic!(
+            "Expecting a TokenTree::Ident(prefix), but received {:?}.",
+            prefix
+        );
+    };
+
+    let comma = prefix_and_lint_name_without_double_colon
+        .next()
+        .unwrap_or_else(|| {
+            panic!("Expecting a lint prefix (Identifier), but reached the end of the input.")
+        });
+    if !matches!(&comma, TokenTree::Punct(p) if p.as_char()==',') {
+        panic!(
+            "Expecting a comma (a TokenTree::Punct), but received {:?}.",
+            comma
+        );
+    }
+
+    let name = prefix_and_lint_name_without_double_colon
+        .next()
+        .unwrap_or_else(|| {
+            panic!("Expecting a lint name (Identifier), but reached the end of the input.")
+        });
+    let (name, span) = if let TokenTree::Ident(name) = name {
+        (name.to_string(), name.span())
+    } else {
+        panic!(
+            "Expecting a TokenTree::Ident(lint_name), but received {:?}.",
+            name
+        );
+    };
+
+    let mut token_streams = Vec::with_capacity(6); //@TODO capacity
+
+    token_streams.push(proc_builder::get_hash());
+    token_streams.push(proc_builder::brackets_allow_lint_parts(
+        &prefix, &name, span,
+    ));
+    token_streams.push(TokenStream::from(proc_builder::get_ident_tree("const")));
+    token_streams.push(TokenStream::from(proc_builder::get_ident_tree("_")));
+    token_streams.push(TokenStream::from(proc_builder::get_colon_alone()));
+
+    token_streams.push(TokenStream::from(proc_builder::get_parens(
+        TokenStream::new(),
+    )));
+    token_streams.push(TokenStream::from(proc_builder::get_punct_alone('=')));
+    token_streams.push(TokenStream::from(proc_builder::get_parens(
+        TokenStream::new(),
+    )));
+    token_streams.push(TokenStream::from(proc_builder::get_punct_alone(';')));
+    auxiliary::token_streams_to_stream(&token_streams)
 }

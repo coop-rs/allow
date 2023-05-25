@@ -5,7 +5,7 @@ name = "allow_prefixed"
 # - ../allow
 # - ../allow_tests
 # - ../allow_tests/tests/internal_checks/incorrect_lint - TODO confirm
-version = "0.1.6"
+version = "0.2.0"
 
 edition = "2018"
 # Because of https://github.com/dtolnay/rustversion we can't support before 1.31. However, to use
@@ -25,20 +25,29 @@ description = "Implementation of 'allow' crate, exported with no prefix (for pre
 
 # Same across allow, allow_preferred and allow_internal:
 authors = ["Peter Kehl <peter.kehl@gmail.com>"]
-# TODO development-tools?
 categories = ["development-tools", "rust-patterns"]
-# aliasing OR aliasable
 keywords = ["alias", "lint", "linting", "lints", "semantic"]
 documentation = "https://docs.rs/allow_prefixed"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/coop-rs/allow"
 homepage = "https://github.com/coop-rs/allow"
-readme = "../README.md"
+readme = "../README_crates_io.md"
 
 [features]
-# if enabled, support the build fails. For experimentation only.
+# Enable nightly-only features. Those are subject to break even in minor version updates! Mutually
+# exclusive to `no_nightly` feature.
+nightly = []
+# Fail if `nightly` feature is enabled. (Mutually exclusive to `nightly` feature.) Useful to prevent
+# any dependencies from introducing `nightly`-only functionality.
 no_nightly = []
-# nightly = []
+# When enabled, do not complain about use of any "dummy" lint macros. Those are now empty macros
+# (which pass their input code as-is). They exist for backwards compatibility for lints that have
+# been removed (usually `clippy::` lints moved to prefixless, standard lints). This feature can be
+# overriden by `scream_past_dummies`.
+silent_past_dummies = []
+# When enabled, complain about use of any "dummy" lint macros - regardless of `silent_past_dummies`.
+scream_past_dummies = []
+
 
 [lib]
 proc-macro = true
