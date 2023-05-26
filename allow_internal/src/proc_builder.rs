@@ -48,15 +48,15 @@ pub fn get_parens(enclosed_stream: TokenStream) -> TokenTree {
 }
 
 /// Param `lint_str` is an empty string if the lint is prefixless (standard, "rustc" lint).
+///
+/// Param `span` must NOT be `Span::call_site()`, but it MUST come from the consumer's code. See
+/// https://github.com/rust-lang/rust/issues/109881.
 pub fn brackets_allow_lint_parts(prefix_str: &str, lint_str: &str, span: Span) -> TokenStream {
     let prefix_lint = {
-        let lint = TokenTree::Ident(Ident::new(
-            lint_str,
-            /*Span::call_site()*/ span.clone(),
-        ));
+        let lint = TokenTree::Ident(Ident::new(lint_str, span.clone()));
         if prefix_str.is_empty() {
             auxiliary::token_trees_to_stream(&[lint])
-        //TokenStream::from_iter([lint])
+            //TokenStream::from_iter([lint])
         } else {
             let mut prefix = match prefix_str {
                 "clippy" => get_clippy(),
@@ -65,7 +65,7 @@ pub fn brackets_allow_lint_parts(prefix_str: &str, lint_str: &str, span: Span) -
             };
             prefix.set_span(span);
             auxiliary::token_trees_to_stream(&[prefix, get_colon_joint(), get_colon_alone(), lint])
-            //TokenStream::from_iter([prefix, colon.clone(), colon, lint])
+            //TokenStream::from_iter([prefix, get_colon_joint(), get_colon_alone(), lint])
         }
     };
 

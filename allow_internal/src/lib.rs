@@ -85,12 +85,12 @@ fn generate_allow_attribute_macro_from_iter(
     let exclamation = proc_builder::get_punct_joint('!');
 
     let mut generate_internal_params = Vec::with_capacity(6); //@TODO capacity
-    // @TODO
-    // 1. change type of lint_prefix to Option<TokenTree>
-    // 2. clone() it and run a check that it contains exactly one Ident
-    // 3. change the 1st if {...} below to use that TokenTree.
-    // 4. extract the Ident in the 2nd if {...} below - use the TokenTree from the Option param
-    //    instead.
+                                                              // @TODO
+                                                              // 1. change type of lint_prefix to Option<TokenTree>
+                                                              // 2. clone() it and run a check that it contains exactly one Ident
+                                                              // 3. change the 1st if {...} below to use that TokenTree.
+                                                              // 4. extract the Ident in the 2nd if {...} below - use the TokenTree from the Option param
+                                                              //    instead.
     if let Some(lint_prefix) = &lint_prefix {
         generate_internal_params.push(TokenTree::Ident(lint_prefix.clone()));
         generate_internal_params.push(proc_builder::get_punct_alone(','));
@@ -132,9 +132,7 @@ fn generate_allow_attribute_macro_from_iter(
 /// Like [`generate_allow_attribute_macro_prefixed!`], but generate a macro for a given
 /// standard (prefixless) `rustc` lint. The macro name itself will be the same as the lint name.
 #[proc_macro]
-pub fn generate_allow_attribute_macro_standard(
-    lint_name_input: TokenStream,
-) -> TokenStream {
+pub fn generate_allow_attribute_macro_standard(lint_name_input: TokenStream) -> TokenStream {
     generate_allow_attribute_macro_from_iter(None, lint_name_input.into_iter(), false)
 }
 
@@ -146,9 +144,7 @@ pub fn generate_allow_attribute_macro_standard(
 /// The macro name will be based on the given prefix and lint name, concatenated with an underscore
 /// in between.
 #[proc_macro]
-pub fn generate_allow_attribute_macro_prefixed(
-    prefix_and_lint_name: TokenStream,
-) -> TokenStream {
+pub fn generate_allow_attribute_macro_prefixed(prefix_and_lint_name: TokenStream) -> TokenStream {
     let mut prefix_and_lint_name = prefix_and_lint_name.into_iter();
 
     // The expected lint_path_name_input is NOT the same as if generated with:
@@ -206,12 +202,18 @@ pub fn generate_allow_attribute_macro_prefixed(
 ///
 /// When calling this from a `macro_rules!`, you want to capture the prefix and lint name as `tt`
 /// (and NOT as `ident`) metavariable. Otherwise use it with `defile` crate.
-/// 
-/// Workaround & See https://github.com/rust-lang/rust/issues/109881.
+///
+/// This does NOT get checked with `cargo check`! Use `cargo clippy` or `cargo rustdoc`,
+/// respectively, instead.
 #[proc_macro]
 pub fn check_that_prefixed_lint_exists(
     prefix_and_lint_name_without_double_colon: TokenStream,
 ) -> TokenStream {
+    // The `const _` is to check that the lint prefix & path is valid (thanks to
+    // `#![deny(unknown_lints)]` in `lib.rs` or `allow_prefixed` crate.
+    //
+    // For a similar, but simplified version, see also `macro_rules! standard_lint` in
+    // `allow_prefixed` crate.
     let mut prefix_and_lint_name_without_double_colon =
         prefix_and_lint_name_without_double_colon.into_iter();
 
@@ -246,6 +248,7 @@ pub fn check_that_prefixed_lint_exists(
         .unwrap_or_else(|| {
             panic!("Expecting a lint name (Identifier), but reached the end of the input.")
         });
+    // `span` must NOT be `Span::call_site()`. See https://github.com/rust-lang/rust/issues/109881.
     let (name, span) = if let TokenTree::Ident(name) = name {
         (name.to_string(), name.span())
     } else {
@@ -286,9 +289,7 @@ macro_rules! empty_proc_macro_gen {
         /// to $macro_name
         #[doc = ")]"]
         #[proc_macro]
-        pub fn $macro_name(
-            _input: ::proc_macro::TokenStream,
-        ) -> ::proc_macro::TokenStream {
+        pub fn $macro_name(_input: ::proc_macro::TokenStream) -> ::proc_macro::TokenStream {
             ::proc_macro::TokenStream::new()
         }
     };
@@ -298,23 +299,23 @@ empty_proc_macro_gen!(generated_proc_macro, "prefix:lint");
 
 // Can't use stringify! here:
 //
-//empty_proc_macro_generator!(generated_proc_macro, stringify!(prefix:lint));
-
-// https://github.com/rust-lang/rust-analyzer/issues/8092
+// empty_proc_macro_generator!(generated_proc_macro, stringify!(prefix:lint));
 //
-// https://github.com/rust-lang/rust-analyzer/issues/14772
+// See, and give thums up to, please:
+// - https://github.com/rust-lang/rust-analyzer/issues/8092
+// - https://github.com/rust-lang/rust-analyzer/issues/14772
 
 /// Helper.
 /// TODO if we parse: Requires `use proc_macro::{TokenStream ETC.}` at the caller scope.
 #[proc_macro]
-pub fn generate_proc_mac_with_doc_attrib(
-    _input: TokenStream,
-) -> TokenStream {
+pub fn generate_proc_mac_with_doc_attrib(_input: TokenStream) -> TokenStream {
     "#[proc_macro]#[doc = \"Documented by a `#[doc = \\\"...\\\" ]` attribute.\" ]
     pub fn generated_proc_mac_with_doc_attrib(
         _input: ::proc_macro::TokenStream,
     ) -> ::proc_macro::TokenStream {
         ::proc_macro::TokenStream::new()
     }
-    ".parse().unwrap()
+    "
+    .parse()
+    .unwrap()
 }

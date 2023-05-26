@@ -1,5 +1,6 @@
 macro_rules! standard_lint {
-    // the `const _` is to check that the lint name is valid. It gets checked with `cargo check`.
+    // The `const _` is to check that the lint name is valid (thanks to `#![deny(unknown_lints)]` in
+    // `lib.rs`). It gets checked with `cargo check`.
     ($lint_name:tt) => {
         #[allow($lint_name)]
         const _: () = ();
@@ -7,16 +8,15 @@ macro_rules! standard_lint {
     };
 }
 macro_rules! prefixed_lint {
-    // the `const _` is to check that the lint name is valid. But, it does NOT get checked with
-    // `cargo check`! Use `cargo clippy` or `cargo rustdoc`, respectively, instead.
-    //($lint_prefix:ident, $lint_name:ident) =>
+    // The lint existence check below can't be generated from macro_rules!, because we need to
+    // concatenate the lint prefix and the lint name. (We can't use `paste` crate, as that can
+    // generate `ident` only, not `path`).
+    //
+    // We CAN'T use one parameter `$lint_path:path` instead of `$lint_prefix:tt, $lint_name:tt`. See
+    // https://github.com/rust-lang/rust-analyzer/issues/14772.
     ($lint_prefix:tt, $lint_name:tt) => {
-        // Workaround https://github.com/rust-lang/rust/issues/109881:
         ::allow_internal::check_that_prefixed_lint_exists!($lint_prefix, $lint_name);
-        ::allow_internal::generate_allow_attribute_macro_prefixed!(
-            $lint_prefix,
-            $lint_name
-        );
+        ::allow_internal::generate_allow_attribute_macro_prefixed!($lint_prefix, $lint_name);
     };
 }
 

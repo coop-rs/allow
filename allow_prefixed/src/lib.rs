@@ -13,9 +13,9 @@
 //
 // Instead of `#[forbid(unknown_lints)]` here, we have it in tests.
 #![doc(html_no_source)]
-#![deny(unknown_lints, missing_docs)]
+#![deny(unknown_lints)]
 #![cfg_attr(can_check_doc_attributes, deny(invalid_doc_attributes))]
-#![deny(unused_doc_comments)]
+#![deny(unused_doc_comments, missing_docs)]
 #![cfg_attr(
     unstable_feature, // "unstable_feature" comes from ../build.rs
     feature(
