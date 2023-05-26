@@ -12,6 +12,7 @@
 // mistake in specifying Rust version ranges for specific lint macros in `allow_prefixed`.
 //
 // Instead of `#[forbid(unknown_lints)]` here, we have it in tests.
+#![doc(html_no_source)]
 #![deny(unknown_lints, missing_docs)]
 #![cfg_attr(can_check_doc_attributes, deny(invalid_doc_attributes))]
 #![deny(unused_doc_comments)]
@@ -52,27 +53,20 @@ mod restrict_floating_toolchain_pof {
     }
 }*/
 
-/// NOT for public use. See [generate_allow_attribute_macro_definition_internal].
+/// NOT for public use. See [generate_allow_attribute_macro_internal].
 ///
 /// $doc is used for rustdoc of the generated proc macro; it must be an `&str`-like literal or
 /// expression - for example, a result of `stringify!`
 #[allow(unused_macros)]
-macro_rules! generate_allow_attribute_macro_definition_internal_with_given_docs {
-    // The following accepts both:
-    // - $lint_path:tt or
-    // - $lint_path:path
-    ( $lint_path:tt, $new_macro_name:ident, $pass_through:expr, $doc:expr ) => {
+macro_rules! generate_allow_attribute_macro_internal_with_given_docs_standard {
+    // @TODO rename $lint_path to $lint_name
+    ( $lint_path:tt, $new_macro_name:tt, $pass_through:expr, $doc:expr ) => {
         #[doc = $doc]
-        //@TODO: concatenate several docs?
-        //#[doc = "Buf buf."]
         #[proc_macro_attribute]
         pub fn $new_macro_name(
             given_attrs: ::proc_macro::TokenStream,
             item_to_be_linted: ::proc_macro::TokenStream,
         ) -> ::proc_macro::TokenStream {
-            // Clippy lints that have configuration (few of them) don't accept the config values as
-            // any attribute parameters. See
-            // https://doc.rust-lang.org/nightly/clippy/configuration.html.
             assert!(
                 given_attrs.is_empty(),
                 "Do not pass any attribute parameters."
@@ -85,6 +79,7 @@ macro_rules! generate_allow_attribute_macro_definition_internal_with_given_docs 
                 let streams = [
                     $crate::proc_builder::get_hash(),
                     $crate::proc_builder::brackets_allow_lint_path(
+                        // @TODO consider: stringify!()
                         ::allow_internal::path_to_str_literal!($lint_path),
                     ),
                     item_to_be_linted,
@@ -100,9 +95,51 @@ macro_rules! generate_allow_attribute_macro_definition_internal_with_given_docs 
     };
 }
 
+/// Prefixed
+#[allow(unused_macros)]
+macro_rules! generate_allow_attribute_macro_internal_with_given_docs_prefixed {
+    ( $lint_prefix:tt, $lint_name:tt, $new_macro_name:tt, $pass_through:expr, $doc:expr ) => {
+        #[doc = $doc]
+        #[proc_macro_attribute]
+        pub fn $new_macro_name(
+            given_attrs: ::proc_macro::TokenStream,
+            item_to_be_linted: ::proc_macro::TokenStream,
+        ) -> ::proc_macro::TokenStream {
+            assert!(
+                given_attrs.is_empty(),
+                "Do not pass any attribute parameters."
+            );
+            // The following if..else branching is optimized out in compile time.
+            if $pass_through {
+                item_to_be_linted
+            } else {
+                // TODO replace with the below if we upgrade Rust min. version, or edition to 2021
+                let streams = [
+                    $crate::proc_builder::get_hash(),
+                    $crate::proc_builder::brackets_allow_lint_path(
+                        // stringify!(...).trim() is NOT enough, because Rust injects spaces around
+                        // :: path separator.
+                        &stringify!($lint_prefix::$lint_name)
+                            .chars()
+                            .filter(|c| !c.is_ascii_whitespace())
+                            .collect::<String>(), //::allow_internal::path_to_str_literal!($lint_prefix::$lint_name),
+                    ),
+                    item_to_be_linted,
+                ];
+                auxiliary::token_streams_to_stream(&streams)
+                /*::proc_macro::TokenStream::from_iter([
+                    $crate::proc_builder::get_hash(),
+                    $crate::proc_builder::brackets_allow_lint(::allow_internal::path_to_str_literal!($lint_prefix::$lint_name)),
+                    item,
+                ])*/
+            }
+        }
+    };
+}
+
 /// NOT for public use. "Used" only by
-/// [`allow_internal::generate_allow_attribute_macro_definition_standard`] and
-/// [`allow_internal::generate_allow_attribute_macro_definition_prefixed`] macros. Those macros
+/// [`allow_internal::generate_allow_attribute_macro_standard`] and
+/// [`allow_internal::generate_allow_attribute_macro_prefixed`] macros. Those macros
 /// don't invoke this one, but instead they generate code that invokes it.
 ///
 /// This macro generates a definition of a `proc` attribute macro to allow (suppress a warning for)
@@ -115,20 +152,39 @@ macro_rules! generate_allow_attribute_macro_definition_internal_with_given_docs 
 ///   unmodified. Used for backwards or future compatibility, where the lint doesn't exist anymore,
 ///   or doesn't exist yet, for the given Rust version.
 #[cfg(attributes_can_invoke_macros)]
-macro_rules! generate_allow_attribute_macro_definition_internal {
+macro_rules! generate_allow_attribute_macro_internal_standard {
     // The following refuses $lint_path:tt. It accepts $lint_path:path only.
-    ( $lint_path:path, $new_macro_name:ident, $pass_through:expr ) => {
-        generate_allow_attribute_macro_definition_internal_with_given_docs!(
-            $lint_path,
+    ( $lint_name:tt, $new_macro_name:tt, $pass_through:expr ) => {
+        generate_allow_attribute_macro_internal_with_given_docs_standard!(
+            $lint_name,
             $new_macro_name,
             $pass_through,
-            stringify!(Alias to #[allow($lint_path)].));
+            stringify!(Alias to #[allow($lint_name)].));
     };
 }
+//@TODO FIX (for old Rust) LATER:
+//
+//#[cfg(not(attributes_can_invoke_macros))]
+//
+//macro_rules! generate_allow_attribute_macro_internal_standard {...}
+
+#[cfg(attributes_can_invoke_macros)]
+macro_rules! generate_allow_attribute_macro_internal_prefixed {
+    // The following refuses $lint_path:tt. It accepts $lint_path:path only.
+    ( $lint_prefix:tt, $lint_name:tt, $new_macro_name:tt, $pass_through:expr ) => {
+        generate_allow_attribute_macro_internal_with_given_docs_prefixed!(
+            $lint_prefix,
+            $lint_name,
+            $new_macro_name,
+            $pass_through,
+            stringify!(Alias to #[allow($lint_prefix::$lint_name)].));
+    };
+}
+//@TODO FIX (for old Rust) LATER:
 #[cfg(not(attributes_can_invoke_macros))]
-macro_rules! generate_allow_attribute_macro_definition_internal {
-    ( $lint_path:tt, $new_macro_name:ident, $pass_through:expr ) => {
-        generate_allow_attribute_macro_definition_internal_with_given_docs!(
+macro_rules! generate_allow_attribute_macro_internal {
+    ( $lint_path:tt, $new_macro_name:tt, $pass_through:expr ) => {
+        generate_allow_attribute_macro_internal_with_given_docs!(
             $lint_path,
             $new_macro_name,
             $pass_through,
@@ -1052,3 +1108,7 @@ prefixed_lint!(clippy, zst_offset);
 // ::allow_internal::check_that_prefixed_lint_exists!(clippy, bufo);
 //
 // standard_lint!(non_existing_std_lint);
+
+allow_internal::generated_proc_macro!();
+
+allow_internal::generate_proc_mac_with_doc_attrib!();

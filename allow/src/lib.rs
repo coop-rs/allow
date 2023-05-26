@@ -4,7 +4,7 @@
 //! - prefixless (rustc/standard) lints are at the top level and also grouped (duplicated) under
 //!   `rustc::` module.
 //! - `clippy` and `rustdoc` lints are grouped under clippy:: and rustdoc:: modules.
-
+#![doc(html_no_source)]
 #![forbid(unknown_lints)]
 #![cfg_attr(has_rustdoc_lints, deny(rustdoc::missing_docs))]
 #![cfg_attr(can_check_doc_attributes, deny(invalid_doc_attributes))]

@@ -48,3 +48,5 @@ pub fn unused() {
 #[allow_unused_variables]
 //#[allow_prefixed::sing_le]
 fn _unused() {}
+
+allow_prefixed::generated_proc_mac_with_doc_attrib!();
