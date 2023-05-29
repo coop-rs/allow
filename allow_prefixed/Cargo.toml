@@ -48,6 +48,9 @@ silent_past_dummies = []
 # When enabled, complain about use of any "dummy" lint macros - regardless of `silent_past_dummies`.
 scream_past_dummies = []
 
+# TODO consider
+# fixed_toolchains_conservative = []
+
 
 [lib]
 proc-macro = true

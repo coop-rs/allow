@@ -12,15 +12,16 @@
 use proc_macro::{TokenStream, TokenTree};
 use std::iter::FromIterator;
 
+// If we ever increase the min. Rust version, or edition to 2021, we can replace this with:
+// `TokenStream::from_iter(array-or-slice-here))`. The same in `allow_internal` crate.
 pub fn token_streams_to_stream(tokens: &[TokenStream]) -> TokenStream {
     let mut v = Vec::with_capacity(tokens.len());
     v.extend_from_slice(tokens);
     TokenStream::from_iter(v)
 }
 
-// - @TODO 1 Note here that if we ever increase MSRV, we can replace this with:
-// `TokenStream::from_iter(array-or-slice-here))`.
-// - @TODO 2 update the same comments of token_trees_to_stream in `allow_internal`, too.
+// If we ever increase the min. Rust version, or edition to 2021, we can replace this with:
+// `TokenStream::from_iter(array-or-slice-here))`. The same in `allow_internal` crate.
 pub fn token_trees_to_stream(tokens: &[TokenTree]) -> TokenStream {
     let mut v = Vec::with_capacity(tokens.len());
     v.extend_from_slice(tokens);

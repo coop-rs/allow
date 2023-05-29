@@ -5,7 +5,7 @@
 #[rustversion::since(1.52)]
 #[rustfmt::skip]
 pub use allow_prefixed::{
-    rustdoc_broken_intra_doc_links as broken_intra_doc_links,
+    //rustdoc_broken_intra_doc_links as broken_intra_doc_links,
     //rustdoc_private_intra_doc_links as private_intra_doc_links,
     //rustdoc_missing_crate_level_docs as missing_crate_level_docs
 };

@@ -3,45 +3,30 @@
 #![deny(missing_docs)]
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Span, TokenStream, TokenTree};
-use std::iter::FromIterator; // TODO remove if we upgrade Rust edition
+use std::{iter::FromIterator, str::FromStr}; // TODO remove if we upgrade Rust edition
 
 mod auxiliary;
 mod proc_builder;
 
-/// Convert given lint path to a quoted string literal. The path must contain exactly one double
-/// colon `::` separator, which will be replaced with an uderscore inthe result
-#[proc_macro]
-pub fn path_to_str_literal(lint_path_input: TokenStream) -> TokenStream {
-    let mut lint_path_input = lint_path_input.into_iter();
-    let lint_path = lint_path_input
-        .next()
-        .unwrap_or_else(|| panic!("Expecting a path, but reached an end of macro input."));
-    let leftover = lint_path_input.next();
-    assert!(
-        leftover.is_none(),
-        "Expecting nothing else after path {}, but received: {:?}.",
-        lint_path,
-        leftover
-    );
-
-    let lint_path = lint_path.to_string();
-    let literal = lint_path.chars().filter(|c| *c != ' ').collect::<String>();
-
-    TokenStream::from(TokenTree::Literal(Literal::string(&literal)))
-}
-
 /// Generate the code that invokes `generate_allow_attribute_macro_internal` macro, and
 /// as a result it defines an attribute macro for the given lint.
 ///
-/// Param `pass_through` indicates whether the result attribute macro should just pass through its
+/// @TODO Move this doc to the macro: Param `pass_through` indicates whether the result attribute macro should just pass through its
 /// input without injecting `#[allow(lint-name-here)]`. Used for removed/deprecated lints - for
 /// backwards compatibility.
-fn generate_allow_attribute_macro_from_iter(
-    lint_prefix: Option<Ident>,
-    mut lint_name_input: impl Iterator<Item = TokenTree>,
-    pass_through: bool,
+fn pass_through_deprecated_attrib_macro(
+    lint_prefix: Option<&str>,
+    properties: AllowMacroProperties,
+    doc: &str,
 ) -> TokenStream {
-    let mut lint_name = lint_name_input.next().unwrap_or_else(|| {
+    // @TODO  cfg: no/nightly, silent/scream _past_dummies, fixed_toolchains_conservative on
+    // floating toolchain
+    /* // TODO move below & implement:
+    if !properties.until_major_minor.is_empty() {
+        // emit #[deprecated = "..."]
+    }*/
+    /*
+    let mut lint_name = lint_name_and_qualities.next().unwrap_or_else(|| {
         panic!("Expecting a lint name (Identifier), but reached the end of the input.")
     });
     // @TODO test in Rust 1.45.2, if the following is not needed then remove:
@@ -64,13 +49,13 @@ fn generate_allow_attribute_macro_from_iter(
         )
     }
 
-    let mut lint_name_input = lint_name_input.peekable();
+    let mut lint_name_input = lint_name_and_qualities.peekable();
     assert!(
         lint_name_input.peek().is_none(),
         "Expecting no more tokens, but received: {:?}.",
         lint_name_input.collect::<Vec<_>>()
     );
-
+    */
     // Note: Do NOT prefix the generated Rust invocation (from `allow_prefixed` itself) in the
     // following with `crate::` like:
     // `crate::generate_allow_attribute_macro_internal_prefixed!(...);` That fails!
@@ -84,34 +69,37 @@ fn generate_allow_attribute_macro_from_iter(
     ));
     let exclamation = proc_builder::get_punct_joint('!');
 
-    let mut generate_internal_params = Vec::with_capacity(6); //@TODO capacity
-                                                              // @TODO
-                                                              // 1. change type of lint_prefix to Option<TokenTree>
-                                                              // 2. clone() it and run a check that it contains exactly one Ident
-                                                              // 3. change the 1st if {...} below to use that TokenTree.
-                                                              // 4. extract the Ident in the 2nd if {...} below - use the TokenTree from the Option param
-                                                              //    instead.
+    let mut generate_internal_params = Vec::with_capacity(9);
+
     if let Some(lint_prefix) = &lint_prefix {
-        generate_internal_params.push(TokenTree::Ident(lint_prefix.clone()));
+        // `lint_prefix` will be checked later. [TokenTree::clone] is documented to be cheap.
+        generate_internal_params.push(TokenTree::Ident(Ident::new(lint_prefix, Span::call_site())));
         generate_internal_params.push(proc_builder::get_punct_alone(','));
     }
-    generate_internal_params.push(lint_name.clone());
+    // We could have passed the lint name TokenTree from upstream, but it's cheap to re-create:
+    let lint_name_token = TokenTree::Ident(Ident::new(&properties.lint_name, Span::call_site()));
+    generate_internal_params.push(lint_name_token.clone());
     generate_internal_params.push(proc_builder::get_punct_alone(','));
 
-    let mut generated_proc_macro_name = lint_name;
+    let mut new_proc_macro_name_token = lint_name_token;
     if let Some(lint_prefix) = lint_prefix {
-        //@TODO remove .clone()
-        let mut lint_prefix = lint_prefix.to_string();
-        lint_prefix.push('_');
-        lint_prefix.extend(generated_proc_macro_name.to_string().chars());
-        generated_proc_macro_name = TokenTree::Ident(Ident::new(&lint_prefix, Span::call_site()));
+        let mut new_proc_macro_name_with_prefix = lint_prefix.to_owned();
+        new_proc_macro_name_with_prefix.push('_');
+        new_proc_macro_name_with_prefix.push_str(&properties.lint_name);
+        new_proc_macro_name_token = TokenTree::Ident(Ident::new(
+            &new_proc_macro_name_with_prefix,
+            Span::call_site(),
+        ));
     }
-    generate_internal_params.push(generated_proc_macro_name);
+    generate_internal_params.push(new_proc_macro_name_token);
     generate_internal_params.push(proc_builder::get_punct_alone(','));
+
     generate_internal_params.push(TokenTree::Ident(Ident::new(
-        if pass_through { "true" } else { "false" },
+        if false/*TODO pass_through*/ { "true" } else { "false" },
         Span::call_site(),
     )));
+    generate_internal_params.push(proc_builder::get_punct_alone(','));
+    generate_internal_params.push(TokenTree::Literal(Literal::string(doc)));
 
     let generate_internal_params_parens = TokenTree::Group(Group::new(
         Delimiter::Parenthesis,
@@ -132,65 +120,304 @@ fn generate_allow_attribute_macro_from_iter(
 /// Like [`generate_allow_attribute_macro_prefixed!`], but generate a macro for a given
 /// standard (prefixless) `rustc` lint. The macro name itself will be the same as the lint name.
 #[proc_macro]
-pub fn generate_allow_attribute_macro_standard(lint_name_input: TokenStream) -> TokenStream {
-    generate_allow_attribute_macro_from_iter(None, lint_name_input.into_iter(), false)
+pub fn generate_allow_attribute_macro_standard(lint_name_and_the_rest: TokenStream) -> TokenStream {
+    TokenStream::new()
+    //TODO
+    //
+    //pass_through_deprecated_attrib_macro(None, lint_name_and_the_rest.into_iter(), false)
 }
 
-/// Input: prefix, lint_name. Output: Attribute macro code that (when applied) injects
-/// `#[allow(lint_path_input)]`.
+/// Input: `prefix, lint_name`. Separated NOT by colons `::`, but by an exactly one comma.
 ///
-/// `lint_path_input` must contain exactly one separator: a comma.
+/// Output: Attribute macro code that (when applied) injects `#[allow(lint_path_input)]`.
 ///
 /// The macro name will be based on the given prefix and lint name, concatenated with an underscore
 /// in between.
+// @TODO pass_through - or have a separate macro for it?
 #[proc_macro]
-pub fn generate_allow_attribute_macro_prefixed(prefix_and_lint_name: TokenStream) -> TokenStream {
-    let mut prefix_and_lint_name = prefix_and_lint_name.into_iter();
+pub fn generate_allow_attribute_macro_prefixed(input: TokenStream) -> TokenStream {
+    /*
+    let mut input = input.into_iter();
 
-    // The expected lint_path_name_input is NOT the same as if generated with:
+    // TODO check if still applicable:
     //
-    // ("std::unused").parse::<TokenStream>().unwrap();
+    // The expected [prefix_and_lint_name] is NOT the same as if generated with (for example):
+    //
+    // ("clippy::all").parse::<TokenStream>().unwrap();
     //
     // because the above .parse() generates several TokenTrees, but the input we get for this macro
     // (from well formed invocations) generates only one top-level TokenTree (with exactly one
     // Group).
-
-    // @TODO re-use - see check_that_prefixed_lint_exists
-    let prefix = prefix_and_lint_name.next().unwrap_or_else(|| {
-        panic!("Expecting lint prefix and lint name, but reached an end of input.")
-    });
-    let prefix = match prefix {
-        TokenTree::Ident(prefix) => prefix,
-        _ => panic!(
-            "Expecting a TokenTree::Ident (of a lint prefix), but received {:?}.",
+    let prefix = parse_value(&mut input, true, "lint_prefix");
+    if let TokenTree::Ident(prefix) = prefix {
+        pass_through_deprecated_attrib_macro(prefix.to_string(), input, false)
+    } else {
+        panic!(
+            "Expected a lint prefix (an identifier), but received {}.",
             prefix
-        ),
-    };
+        )
+    }*/
+    input
+}
 
-    let comma = prefix_and_lint_name.next().unwrap_or_else(|| {
-        panic!("Expecting a comma after the lint prefix, but received an empty input.")
-    });
-    if !matches!(&comma, TokenTree::Punct(p) if p.as_char()==',') {
-        panic!("Expecting a comma, but received {:?}.", comma);
+/// Default lint applicability. Enum wordings are based on URLs like
+/// https://doc.rust-lang.org/nightly/rustc/lints/listing/allowed-by-default.html.
+enum LintDefault {
+    Allowed,
+    Warn,
+    Deny,
+}
+impl ToString for LintDefault {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Allowed => "allowed".to_owned(),
+            Self::Warn => "warn".to_owned(),
+            Self::Deny => "deny".to_owned(),
+        }
     }
-    /*
-    let name = prefix_and_lint_name.next().unwrap_or_else(|| panic!("Expecting lint name after the prefix and comma, but reached an end of input."));
-    let name = match name {
-        TokenTree::Ident(name) => name,
-        _ => panic!(
-            "Expecting a TokenTree::Ident (of a lint name), but received {:?}.",
-            name
-        ),
-    };
+}
+impl FromStr for LintDefault {
+    type Err = String;
 
-    let mut prefix_and_lint_name = prefix_and_lint_name.peekable();
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "allowed" => Ok(Self::Allowed),
+            "warn" => Ok(Self::Warn),
+            "deny" => Ok(Self::Deny),
+            other => Err(other.to_owned()),
+        }
+    }
+}
+
+/// Properties of our target generated attribute macros (to be used, and potentially aliased, by
+/// users), except for the prefix. The field names reflect the "full" parameters (right of
+/// `ALL_PARAMS`) accepted by macro by example [`allow_prefixed::any`].
+struct AllowMacroProperties {
+    lint_name_token_tree: TokenTree,
+    lint_name: String,
+    default: Option<LintDefault>, // for rustc (standard) only
+    deprecated: String,
+    since_major_minor: String,
+    until_major_minor: String,
+    not_yet: bool,
+    not_anymore: bool,
+}
+
+impl AllowMacroProperties {
+    fn nightly(&self) -> bool {
+        self.since_major_minor == "nightly"
+    }
+}
+
+fn parse_value(
+    iter: &mut impl Iterator<Item = TokenTree>,
+    expect_comma_afterwards: bool,
+    description: &str,
+) -> TokenTree {
+    let value = iter.next();
+    let value = value.unwrap_or_else(|| {
+        panic!("Expecting {}, but reached an end of input.", description);
+    });
+    if expect_comma_afterwards {
+        let comma = iter.next().unwrap_or_else(|| {
+            panic!(
+                "Expecting a comma after {}, but reached an end of input.",
+                description
+            )
+        });
+        if !matches!(&comma, TokenTree::Punct(p) if p.as_char()==',') {
+            panic!("Expecting a comma, but received {:?}.", comma);
+        }
+    }
+    value
+}
+
+fn parse_literal(
+    iter: &mut impl Iterator<Item = TokenTree>,
+    expect_comma_afterwards: bool,
+    description: &str,
+) -> String {
+    let value = parse_value(iter, expect_comma_afterwards, description);
+    if let TokenTree::Literal(literal) = &value {
+        literal.to_string()
+    } else {
+        panic!(
+            "Expecting {} as a literal, but received {:#?} instead.",
+            description, value
+        )
+    }
+}
+
+/// Why a tuple of [String] and [TokenTree], instead of just [String]? When used for `lint_name`
+/// (the first token to `any` macro in `allow_prefixed`), in addition to the string (ident name) we
+/// want the original [TokenTree], so that we can reuse it.
+fn parse_ident(
+    iter: &mut impl Iterator<Item = TokenTree>,
+    expect_comma_afterwards: bool,
+    description: &str,
+) -> (String, TokenTree) {
+    let token_tree = parse_value(iter, expect_comma_afterwards, description);
+    if let TokenTree::Ident(ident) = &token_tree {
+        (ident.to_string(), token_tree)
+    } else {
+        panic!(
+            "Expecting {} as an Ident, but received {:#?} instead.",
+            description, token_tree
+        )
+    }
+}
+
+fn assert_no_more_tokens(token_tree_iter: &mut impl Iterator<Item = TokenTree>) {
+    let mut token_trees = token_tree_iter.peekable();
     assert!(
-        prefix_and_lint_name.peek().is_none(),
+        token_trees.peek().is_none(),
         "Expecting no more tokens, but received: {:?}.",
-        prefix_and_lint_name.collect::<Vec<_>>()
-    );*/
+        token_trees.collect::<Vec<_>>()
+    );
+}
 
-    generate_allow_attribute_macro_from_iter(Some(prefix), prefix_and_lint_name, false)
+/// Return `token_tree` if it's a non-group token. Otherwise, assert that it's a group with no
+/// delimiter, containing exactly one token (sub)tree, and return that (sub)tree.
+fn token_unwrap_undelimited_group_if_any(token_tree: TokenTree) -> TokenTree {
+    if let TokenTree::Group(group) = token_tree {
+        let mut iter = group.stream().into_iter();
+        assert_eq!(
+            group.delimiter(),
+            Delimiter::None,
+            "Received a group. Expecting the delimiter to be \"None\", but it was: {:#?}.",
+            group.delimiter()
+        );
+
+        if let Some(token_tree) = iter.next() {
+            assert_no_more_tokens(&mut iter);
+            token_tree
+        } else {
+            panic!("Received a group with a correct delimiter (\"None\"). Expecting exactly one item, but the group was empty.")
+        }
+    } else {
+        token_tree
+    }
+}
+
+fn parse_literal_bool(
+    iter: &mut impl Iterator<Item = TokenTree>,
+    expect_comma_afterwards: bool,
+    description: &str,
+) -> bool {
+    let value = parse_value(iter, expect_comma_afterwards, description);
+    let value = token_unwrap_undelimited_group_if_any(value);
+
+    if let TokenTree::Ident(ident) = value {
+        let ident = ident.to_string();
+        if ident == "true" {
+            true
+        } else if ident == "false" {
+            false
+        } else {
+            panic!(
+                "Expecting {} as a bool literal, but received {}.",
+                description, ident
+            )
+        }
+    } else {
+        panic!(
+            "Expecting {} as a bool literal (Ident), but received {:#?} instead.",
+            description, value
+        )
+    }
+}
+
+/// Parse all the properties from a comma-separated stream of values. The values and their order
+/// reflect the "full" parameters (right of `ALL_PARAMS`) accepted by macro by example
+/// [`allow_prefixed::any`].
+fn parse_properties(
+    token_trees: &mut impl Iterator<Item = TokenTree>,
+    is_rustc: bool,
+) -> AllowMacroProperties {
+    let (lint_name, lint_name_token_tree) = parse_ident(token_trees, true, "lint name");
+
+    let default = parse_literal(token_trees, true, "default");
+    let default = if is_rustc {
+        match default.parse::<LintDefault>() {
+            Ok(default) => Some(default),
+            Err(found) => panic!("Expecting a (rustc) lint default, but found: {}.", found),
+        }
+    } else {
+        assert!(
+            default == "\"\"",
+            "Expecting a (clippy|rustdoc) lint default to be blank, but found: {}.",
+            default
+        );
+        None
+    };
+    let deprecated = parse_literal(
+        token_trees,
+        true,
+        "deprecated (message, if other than default)",
+    );
+    let since_major_minor = parse_literal(token_trees, true, "since_major_minor");
+    let until_major_minor = parse_literal(token_trees, true, "until_major_minor");
+    let not_yet = parse_literal_bool(token_trees, true, "not_yet");
+    let not_anymore = parse_literal_bool(token_trees, false, "not_anymore");
+
+    let mut token_trees = token_trees.peekable();
+    assert_no_more_tokens(&mut token_trees);
+    AllowMacroProperties {
+        lint_name_token_tree,
+        lint_name,
+        default,
+        deprecated,
+        since_major_minor,
+        until_major_minor,
+        not_yet,
+        not_anymore,
+    }
+}
+
+/// Generate the documentation text and the whole target attribute macro. The parameter `input`
+/// (stream) does NOT contain the lint prefix. It contains all fields accepted by
+/// [`parse_properties`] (starting with the lint name). The same as the input to macro_rules
+/// [`::allow_prefixed::any`] after it accepts `ALL_PARAMS, clippy`.
+#[proc_macro]
+pub fn doc_and_attrib_macro_clippy(input: TokenStream) -> TokenStream {
+    let properties = parse_properties(&mut input.clone().into_iter(), false);
+    // emit [doc = "..."]
+    // - rustc:
+    //   https://doc.rust-lang.org/nightly/rustc/lints/listing/(allowed|warn|deny)-by-default.html
+    //
+    // - https://doc.rust-lang.org/nightly/rustdoc/lints.html#lint_name_here
+    //
+    // - clippy nightly -> "master":
+    //   https://rust-lang.github.io/rust-clippy/master/index.html#absurd_extreme_comparisons
+    //
+    // - clippy versioned:
+    //   https://rust-lang.github.io/rust-clippy/rust-1.65.0/index.html#alloc_instead_of_core
+
+    // Based on https://rust-lang.github.io/rust-clippy/master/index.html > "Lint groups"
+    // dropdown/filter > Deprecated, and
+    // https://doc.rust-lang.org/nightly/rustc/lints/listing/index.html as of May 2023, we can treat
+    // deprecated and removed/renamed lints as the same.
+    //
+    // Deprecate when:
+    // - `#[cfg(floating_toolchain)]` and feature `fixed_toolchains_conservative` and
+    //   `$since_major_minor` being "nightly"
+    // - or: `not_anymore
+    // - or: `not_yet && #[cfg(scream_future_dummies)]` - TODO consider
+    // - or: properties.deprecated is not blank (not a blank string)
+
+    let clippy_base = if properties.nightly() {
+        "https://rust-lang.github.io/rust-clippy/master/index.html#".to_owned()
+    } else {
+        format!(
+            "https://rust-lang.github.io/rust-clippy/rust-{}/index.html#",
+            properties.since_major_minor
+        )
+    };
+    let doc = format!(
+        "Alias to `#[allow(clippy::{})]`. See {}/{}.",
+        properties.lint_name, clippy_base, properties.lint_name
+    );
+    pass_through_deprecated_attrib_macro(Some("clippy"), properties, &doc)
 }
 
 /// Generate code like: `#[allow(prefix::lint_name)] const _: () = ();`. Use it together with
@@ -258,7 +485,7 @@ pub fn check_that_prefixed_lint_exists(
         );
     };
 
-    let mut token_streams = Vec::with_capacity(6); //@TODO capacity
+    let mut token_streams = Vec::with_capacity(9);
 
     token_streams.push(proc_builder::get_hash());
     token_streams.push(proc_builder::brackets_allow_lint_parts(
@@ -279,6 +506,7 @@ pub fn check_that_prefixed_lint_exists(
     auxiliary::token_streams_to_stream(&token_streams)
 }
 
+//----------------
 macro_rules! empty_proc_macro_gen {
     ($macro_name:tt, $subdoc_literal:tt) => {
         // Generated macro $macro_name and its documentation

@@ -31,6 +31,8 @@ nightly = ["allow_prefixed/nightly"]
 no_nightly = ["allow_prefixed/no_nightly"]
 silent_past_dummies = ["allow_prefixed/silent_past_dummies"]
 scream_past_dummies = ["allow_prefixed/scream_past_dummies"]
+# TODO consider
+# fixed_toolchains_conservative = ["allow_prefixed/fixed_toolchains_conservative"]
 
 [dependencies]
 rustversion = "1.0"

@@ -26,22 +26,6 @@ fn get_allow() -> TokenTree {
 }
 // -----
 
-/// Param `lint_path` is NOT an &str of proc macro representation of `macro_rules!` type `path` -
-/// because such a proc macro representation is a Group of Ident, and when transformed by
-/// `to_string()` (`or format!(...)`), it gets one space inserted on each side of `::`.
-///
-/// Instead, `lint_path` contains no spaces. For example: `clippy::almost_swapped`.
-///
-/// For our purpose only. (It can contain only one pair of colons `::`, and NOT at the very
-/// beginning.)
-pub fn brackets_allow_lint_path(lint_path: &str) -> TokenStream {
-    let (prefix_str, lint_str) = match lint_path.find(':') {
-        Some(colon_index) => (&lint_path[..colon_index], &lint_path[colon_index + 2..]),
-        None => ("", lint_path),
-    };
-    brackets_allow_lint_parts(prefix_str, lint_str)
-}
-
 /// Param `lint_str` is an empty string if the lint is prefixless (standard, "rustc" lint).
 pub fn brackets_allow_lint_parts(prefix_str: &str, lint_str: &str) -> TokenStream {
     let prefix_lint = {
