@@ -196,7 +196,7 @@ struct AllowMacroProperties {
     lint_name_token_tree: TokenTree,
     lint_name: String,
     default: Option<LintDefault>, // for rustc (standard) only
-    deprecated: String,
+    deprecated_msg: String,
     since_major_minor: String,
     until_major_minor: String,
     nightly: bool,
@@ -351,7 +351,7 @@ fn parse_properties(
         );
         None
     };
-    let deprecated = parse_literal(
+    let deprecated_msg = parse_literal(
         token_trees,
         true,
         "deprecated (message, if other than default)",
@@ -368,7 +368,7 @@ fn parse_properties(
         lint_name_token_tree,
         lint_name,
         default,
-        deprecated,
+        deprecated_msg,
         since_major_minor,
         until_major_minor,
         nightly,

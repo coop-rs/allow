@@ -75,12 +75,12 @@ macro_rules! any {
         ::allow_internal::doc_and_attrib_macro_clippy!($($properties)+);
     };
 
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal, $not_anymore:literal) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal, $not_anymore:literal) => {
         any!(ALL_PARAMS,
             $lint_prefix,
             $lint_name,
             $default,
-            $deprecated,
+            $deprecated_msg,
             $since_major_minor,
             $until_major_minor,
             $nightly,
@@ -88,12 +88,12 @@ macro_rules! any {
             $not_anymore);
     };
 
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, "", $nightly:literal, $not_yet:literal) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, "", $nightly:literal, $not_yet:literal) => {
         any!(
             $lint_prefix,
             $lint_name,
             $default,
-            $deprecated,
+            $deprecated_msg,
             $since_major_minor,
             "",
             $nightly,
@@ -101,13 +101,13 @@ macro_rules! any {
             false // not deprecated/discontinued yet (but potentially not available yet, either)
         );
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal) => {
         #[rustversion::not(since($until_major_minor))]
         any!(
             $lint_prefix,
             $lint_name,
             $default,
-            $deprecated,
+            $deprecated_msg,
             $since_major_minor,
             $until_major_minor,
             $nightly,
@@ -119,7 +119,7 @@ macro_rules! any {
             $lint_prefix,
             $lint_name,
             $default,
-            $deprecated,
+            $deprecated_msg,
             $since_major_minor,
             $until_major_minor,
             $nightly,
@@ -134,13 +134,13 @@ macro_rules! any {
     // the other (shortcut) variants.
     //
     // Here, `$nightly` is a bool literal.
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal) => {
         #[rustversion::not(since($since_major_minor))]
         any!(
             $lint_prefix,
             $lint_name,
             $default,
-            $deprecated,
+            $deprecated_msg,
             $since_major_minor,
             $until_major_minor,
             $nightly,
@@ -151,7 +151,7 @@ macro_rules! any {
             $lint_prefix,
             $lint_name,
             $default,
-            $deprecated,
+            $deprecated_msg,
             $since_major_minor,
             $until_major_minor,
             $nightly,
@@ -160,20 +160,20 @@ macro_rules! any {
     };
     // The following two input patterns have `$nightly` NOT as a bool literal, but either `nightly`
     // (without quotes), or empty (with a trailing comma left in).
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, nightly) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, $until_major_minor, true);
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, nightly) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, $until_major_minor, true);
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt,) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, $until_major_minor, false);
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt,) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, $until_major_minor, false);
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, $until_major_minor, );
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, $until_major_minor, );
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, "");
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, "");
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated, 1.45, "");
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, 1.45, "");
     };
     ($lint_prefix:tt, $lint_name:tt, $default:tt) => {
         any!($lint_prefix, $lint_name, $default, "", 1.45, "")
@@ -205,7 +205,7 @@ macro_rules! validate_any {
     // Hence we have a separate `nightly` flag. That also helps when troubleshooting, since
     // `nightly` version depends on when it was updated the last time...
     //
-    //@TODO try (along with $deprecated): `:literal` wherever possible:
+    //@TODO try (along with $deprecated_msg): `:literal` wherever possible:
     //
     // ($lint_prefix:tt, $lint_name:tt, $since_major_minor:literal, $until_major_minor:literal)
     //
@@ -213,31 +213,31 @@ macro_rules! validate_any {
     //
     // ($lint_prefix:tt, $lint_name:tt, $since_major:literal.$since_minor:literal,
     // $until_major:literal.$until_minor:literal)
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $_until_major_minor:tt) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $_until_major_minor:tt) => {
         validate_any!(
             $lint_prefix,
             $lint_name,
             $default,
-            $deprecated,
+            $deprecated_msg,
             $since_major_minor
         );
     };
     //
-    //@TODO try (along with $deprecated): `:literal` wherever possible:
+    //@TODO try (along with $deprecated_msg): `:literal` wherever possible:
     //
-    //@TODO try (along with $deprecated):
+    //@TODO try (along with $deprecated_msg):
     //
     // ($lint_prefix:tt, $lint_name:tt, $since_major_minor:literal)
     //
     // OR:
     //
     // ($lint_prefix:tt, $lint_name:tt, $since_major:literal.$since_minor:literal)
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $_since_major_minor:tt) => {
-        validate_any!($lint_prefix, $lint_name, $default, $deprecated);
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $_since_major_minor:tt) => {
+        validate_any!($lint_prefix, $lint_name, $default, $deprecated_msg);
     };
-    // `$deprecated` is an OPTIONAL message for deprecated lints. But: A lint is automatically
-    // deprecated if Rust is past its `until_major_minor`, even if `$deprecated` is blank.
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt) => {
+    // `$deprecated_msg` is an OPTIONAL message for deprecated lints. But: A lint is automatically
+    // deprecated if Rust is past its `until_major_minor`, even if `$deprecated_msg` is blank.
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt) => {
         validate_any!($lint_prefix, $lint_name, $default);
     };
 
