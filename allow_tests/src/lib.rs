@@ -1,7 +1,8 @@
 #![forbid(unknown_lints)]
 
-use allow_prefixed::unused_variables as allow_unused_variables;
-use allow_prefixed::rustdoc_broken_intra_doc_links as broken_intra_doc_links_legacy;
+//use allow_prefixed::unused_variables as allow_unused_variables;
+//use allow_prefixed::rustdoc_broken_intra_doc_links as broken_intra_doc_links_legacy;
+use allow_prefixed::clippy_alloc_instead_of_core as allow_alloc_instead_of_core_dont_care_no_std;
 
 //use allow_prefixed::clippy_await_holding_lock as await_holding_lock_i_know_better;
 
@@ -42,10 +43,13 @@ pub fn unused() {
 //#[allow_prefixed::unused_braces]
 //#[allow::clippy_await_holding_lock]
 //#[await_holding_lock_i_know_better]
-#[allow_prefixed::rustdoc_broken_intra_doc_links]
-#[allow::rustdoc::broken_intra_doc_links]
-#[broken_intra_doc_links_legacy]
-#[allow_unused_variables]
+
+//#[allow_prefixed::rustdoc_broken_intra_doc_links]
+//#[allow::rustdoc::broken_intra_doc_links]
+//#[broken_intra_doc_links_legacy]
+//#[allow_unused_variables]
+
+#[allow_alloc_instead_of_core_dont_care_no_std]
 //#[allow_prefixed::sing_le]
 fn _unused() {}
 

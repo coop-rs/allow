@@ -199,6 +199,7 @@ struct AllowMacroProperties {
     deprecated: String,
     since_major_minor: String,
     until_major_minor: String,
+    nightly: bool,
     not_yet: bool,
     not_anymore: bool,
 }
@@ -357,6 +358,7 @@ fn parse_properties(
     );
     let since_major_minor = parse_literal(token_trees, true, "since_major_minor");
     let until_major_minor = parse_literal(token_trees, true, "until_major_minor");
+    let nightly = parse_literal_bool(token_trees, true, "nightly");
     let not_yet = parse_literal_bool(token_trees, true, "not_yet");
     let not_anymore = parse_literal_bool(token_trees, false, "not_anymore");
 
@@ -369,6 +371,7 @@ fn parse_properties(
         deprecated,
         since_major_minor,
         until_major_minor,
+        nightly,
         not_yet,
         not_anymore,
     }

@@ -75,7 +75,7 @@ macro_rules! any {
         ::allow_internal::doc_and_attrib_macro_clippy!($($properties)+);
     };
 
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $not_yet:literal, $not_anymore:literal) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal, $not_anymore:literal) => {
         any!(ALL_PARAMS,
             $lint_prefix,
             $lint_name,
@@ -83,10 +83,12 @@ macro_rules! any {
             $deprecated,
             $since_major_minor,
             $until_major_minor,
-            $not_yet, $not_anymore);
+            $nightly,
+            $not_yet,
+            $not_anymore);
     };
 
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, "", $not_yet:literal) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, "", $nightly:literal, $not_yet:literal) => {
         any!(
             $lint_prefix,
             $lint_name,
@@ -94,12 +96,13 @@ macro_rules! any {
             $deprecated,
             $since_major_minor,
             "",
+            $nightly,
             $not_yet,
             false // not deprecated/discontinued yet (but potentially not available yet, either)
         );
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $not_yet:literal) => {
-        #[rustversion::not(since($until_major_minor.0))]
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal) => {
+        #[rustversion::not(since($until_major_minor))]
         any!(
             $lint_prefix,
             $lint_name,
@@ -107,10 +110,11 @@ macro_rules! any {
             $deprecated,
             $since_major_minor,
             $until_major_minor,
+            $nightly,
             $not_yet,
             false // not deprecated/discontinued yet (but potentially not available yet, either)
         );
-        #[rustversion::since($until_major_minor.0)]
+        #[rustversion::since($until_major_minor)]
         any!(
             $lint_prefix,
             $lint_name,
@@ -118,6 +122,7 @@ macro_rules! any {
             $deprecated,
             $since_major_minor,
             $until_major_minor,
+            $nightly,
             $not_yet,
             true // not available anymore
         );
@@ -127,8 +132,10 @@ macro_rules! any {
     //
     // The following variant requires $until_major_minor NOT to be an empty string. Otherwise use
     // the other (shortcut) variants.
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt) => {
-        #[rustversion::not(since($since_major_minor.0))]
+    //
+    // Here, `$nightly` is a bool literal.
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal) => {
+        #[rustversion::not(since($since_major_minor))]
         any!(
             $lint_prefix,
             $lint_name,
@@ -136,9 +143,10 @@ macro_rules! any {
             $deprecated,
             $since_major_minor,
             $until_major_minor,
+            $nightly,
             true // not available yet
         );
-        #[rustversion::since($since_major_minor.0)]
+        #[rustversion::since($since_major_minor)]
         any!(
             $lint_prefix,
             $lint_name,
@@ -146,11 +154,20 @@ macro_rules! any {
             $deprecated,
             $since_major_minor,
             $until_major_minor,
+            $nightly,
             false // already available (but potentially already deprecated, too)
         );
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, "nightly") => {
-        any!($lint_prefix, $lint_name, $default, $deprecated, "nightly", "");
+    // The following two input patterns have `$nightly` NOT as a bool literal, but either `nightly`
+    // (without quotes), or empty (with a trailing comma left in).
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt, nightly) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, $until_major_minor, true);
+    };
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt,) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, $until_major_minor, false);
+    };
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $until_major_minor:tt) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, $until_major_minor, );
     };
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt) => {
         any!($lint_prefix, $lint_name, $default, $deprecated, $since_major_minor, "");
@@ -184,13 +201,18 @@ macro_rules! validate_any {
     //
     // Ensure that $since_major_minor is lower than $until_major_minor. This does NOT validate it.
     //
+    // Unfortunately, `rustversion` crate doesn't support version notations like `1.71.0-nightly`.
+    // Hence we have a separate `nightly` flag. That also helps when troubleshooting, since
+    // `nightly` version depends on when it was updated the last time...
+    //
     //@TODO try (along with $deprecated): `:literal` wherever possible:
     //
     // ($lint_prefix:tt, $lint_name:tt, $since_major_minor:literal, $until_major_minor:literal)
     //
     // OR:
     //
-    // ($lint_prefix:tt, $lint_name:tt, $since_major:literal.$since_minor:literal, $until_major:literal.$until_minor:literal)
+    // ($lint_prefix:tt, $lint_name:tt, $since_major:literal.$since_minor:literal,
+    // $until_major:literal.$until_minor:literal)
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, $since_major_minor:tt, $_until_major_minor:tt) => {
         validate_any!(
             $lint_prefix,
@@ -203,10 +225,6 @@ macro_rules! validate_any {
     //
     //@TODO try (along with $deprecated): `:literal` wherever possible:
     //
-    //
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated:tt, "nightly") => {
-        validate_any!($lint_prefix, $lint_name, $default, $deprecated);
-    };
     //@TODO try (along with $deprecated):
     //
     // ($lint_prefix:tt, $lint_name:tt, $since_major_minor:literal)
@@ -245,7 +263,7 @@ macro_rules! standard_lint_versioned {
     // We can't match major.minor.patch in macro_rules. So far all lints started at patch version
     // being 0, so we omit it as a parameter.
     ($major_minor:tt, $lint_name:tt) => {
-        #[rustversion::since($major_minor.0)]
+        #[rustversion::since($major_minor)]
         standard_lint!($lint_name);
     }; // @TODO initial version - deprecated (or removed?) version
 }
@@ -260,7 +278,7 @@ macro_rules! standard_lint_nightly {
 macro_rules! prefixed_lint_versioned {
     // Again,  omitting patch version as a parameter.
     ($major_minor:tt, $lint_prefix:tt, $lint_name:tt) => {
-        #[rustversion::since($major_minor.0)]
+        #[rustversion::since($major_minor)]
         prefixed_lint!($lint_prefix, $lint_name);
     }; // @TODO initial version - deprecated (or removed?) version
 }
