@@ -357,8 +357,8 @@ fn parse_properties(
         "deprecated (message, if other than default)",
     );
     let since_major_minor = parse_literal(token_trees, true, "since_major_minor");
-    let until_major_minor = parse_literal(token_trees, true, "until_major_minor");
     let nightly = parse_literal_bool(token_trees, true, "nightly");
+    let until_major_minor = parse_literal(token_trees, true, "until_major_minor");
     let not_yet = parse_literal_bool(token_trees, true, "not_yet");
     let not_anymore = parse_literal_bool(token_trees, false, "not_anymore");
 

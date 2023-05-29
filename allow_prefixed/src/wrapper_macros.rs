@@ -50,11 +50,13 @@ macro_rules! check_that_default_is_blank {
     ($_lint_name:ident, "", $($_:tt)+) => {};
 }
 
-/// Dispatch to an appropriate `::allow_internal::doc_and_attrib_macro_***` proc macro to generate
-/// documentation and the source of the desired proc macro that allows the given lint.
+/// Internal transformation for (after/from within) [`any`].
 ///
-/// For supported "public" input see comments in source code of [`validate_any`].
-macro_rules! any {
+/// Unlike [`any`], all input patterns here treat `$nightly` as a bool literal.
+///
+/// Suggest you look at the source code of [`any`] first. Then read the source code of
+/// `any_with_nightly_as_bool`, but from the bottom up (from the last input pattern to the first).
+macro_rules! any_with_nightly_as_bool {
     // TODO the allow_internal:: proc macro will pass $not_anymore and $not_yet to allow_prefixed::
     // The following input variations are a "private" interface of this macro: Used from other match
     // branches of this macro only.
@@ -75,102 +77,128 @@ macro_rules! any {
         ::allow_internal::doc_and_attrib_macro_clippy!($($properties)+);
     };
 
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal, $not_anymore:literal) => {
-        any!(ALL_PARAMS,
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, $until_major_minor:tt, $not_yet:literal, $not_anymore:literal) => {
+        any_with_nightly_as_bool!(ALL_PARAMS,
             $lint_prefix,
             $lint_name,
             $default,
             $deprecated_msg,
             $since_major_minor,
-            $until_major_minor,
             $nightly,
+            $until_major_minor,
             $not_yet,
             $not_anymore);
     };
 
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, "", $nightly:literal, $not_yet:literal) => {
-        any!(
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, , $not_yet:literal) => {
+        any_with_nightly_as_bool!(
             $lint_prefix,
             $lint_name,
             $default,
             $deprecated_msg,
             $since_major_minor,
-            "",
             $nightly,
+            "",
             $not_yet,
             false // not deprecated/discontinued yet (but potentially not available yet, either)
         );
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal, $not_yet:literal) => {
-        #[rustversion::not(since($until_major_minor))]
-        any!(
+
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, "", $not_yet:literal) => {
+        any_with_nightly_as_bool!(
             $lint_prefix,
             $lint_name,
             $default,
             $deprecated_msg,
             $since_major_minor,
-            $until_major_minor,
             $nightly,
+            "",
+            $not_yet,
+            false // not deprecated/discontinued yet (but potentially not available yet, either)
+        );
+    };
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, $until_major_minor:tt, $not_yet:literal) => {
+        #[rustversion::not(since($until_major_minor))]
+        any_with_nightly_as_bool!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            $deprecated_msg,
+            $since_major_minor,
+            $nightly,
+            $until_major_minor,
             $not_yet,
             false // not deprecated/discontinued yet (but potentially not available yet, either)
         );
         #[rustversion::since($until_major_minor)]
-        any!(
+        any_with_nightly_as_bool!(
             $lint_prefix,
             $lint_name,
             $default,
             $deprecated_msg,
             $since_major_minor,
-            $until_major_minor,
             $nightly,
+            $until_major_minor,
             $not_yet,
             true // not available anymore
         );
     };
 
-    // The following input variations are "public" interface of this macro.
-    //
-    // The following variant requires $until_major_minor NOT to be an empty string. Otherwise use
-    // the other (shortcut) variants.
-    //
-    // Here, `$nightly` is a bool literal.
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, $nightly:literal) => {
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, $until_major_minor:tt) => {
         #[rustversion::not(since($since_major_minor))]
-        any!(
+        any_with_nightly_as_bool!(
             $lint_prefix,
             $lint_name,
             $default,
             $deprecated_msg,
             $since_major_minor,
-            $until_major_minor,
             $nightly,
+            $until_major_minor,
             true // not available yet
         );
         #[rustversion::since($since_major_minor)]
-        any!(
+        any_with_nightly_as_bool!(
             $lint_prefix,
             $lint_name,
             $default,
             $deprecated_msg,
             $since_major_minor,
-            $until_major_minor,
             $nightly,
+            $until_major_minor,
             false // already available (but potentially already deprecated, too)
         );
     };
-    // The following two input patterns have `$nightly` NOT as a bool literal, but either `nightly`
-    // (without quotes), or empty (with a trailing comma left in).
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt, nightly) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, $until_major_minor, true);
+}
+
+/// Dispatch to an appropriate `::allow_internal::doc_and_attrib_macro_***` proc macro to generate
+/// documentation and the source of the desired proc macro that allows the given lint.
+///
+/// TODO CHECK: For supported "public" input see comments in source code of [`validate_any`].
+///
+/// Unlike [`any_with_nightly_as_bool`], here `$nightly` is NOT as a bool literal, but either
+/// `nightly` (without quotes, like a language keyword), or empty (with a trailing comma left in).
+///
+/// Read the source code from the bottom up (from the last input pattern to the first). Then you may
+/// want to look at [`any_with_nightly_as_bool`].
+macro_rules! any {
+    // TODO CHECK: The following variant requires $until_major_minor NOT to be an empty string.
+    // Otherwise use the other (shortcut) variants.
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, ,$until_major_minor:tt) => {
+        any_with_nightly_as_bool!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, false, $until_major_minor);
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt,) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, $until_major_minor, false);
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, nightly, $until_major_minor:tt) => {
+        any_with_nightly_as_bool!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, true, $until_major_minor);
     };
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $until_major_minor:tt) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, $until_major_minor, );
+
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, ) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, , "");
     };
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, nightly) => {
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, nightly, "");
+    };
+
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, "");
+        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, );
     };
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt) => {
         any!($lint_prefix, $lint_name, $default, $deprecated_msg, 1.45, "");
