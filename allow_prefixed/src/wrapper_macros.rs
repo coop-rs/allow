@@ -55,7 +55,7 @@ macro_rules! check_that_default_is_underscore {
 /// Unlike [`any`], all input patterns here treat `$nightly` as a bool literal.
 ///
 /// Suggest you look at the source code of [`any`] first. Then read the source code of
-/// `any_with_bools`, but from the bottom up (from the last input pattern to the first).
+/// `any_with_bools`, BUT from the bottom up (from the last input pattern to the first).
 macro_rules! any_with_bools {
     // TODO the allow_internal:: proc macro will pass $not_anymore and $not_yet to allow_prefixed::
     // The following input variations are a "private" interface of this macro: Used from other match
@@ -113,7 +113,7 @@ macro_rules! any_with_bools {
             $deprecated_msg,
             $since_major_minor,
             $nightly,
-            "",
+            "", // This is NOT an underscore, but an empty string, so that the proc macro can expect a literal.
             $not_yet,
             false // not deprecated/discontinued yet (but potentially not available yet, either)
         );
@@ -176,20 +176,29 @@ macro_rules! any_with_bools {
 ///
 /// TODO CHECK: For supported "public" input see comments in source code of [`validate_any`].
 ///
-/// Unlike [`any_with_bools`], here `$nightly` is NOT as a bool literal, but either
-/// `nightly` (without quotes, like a language keyword), or empty (with a trailing comma left in).
+/// Unlike [`any_with_bools`], here `$nightly` is NOT as a bool literal, but either `nightly`
+/// (without quotes, like a language keyword), or empty (with a trailing comma left in).
 ///
-/// Read the source code from the bottom up (from the last input pattern to the first). Then you may
+/// Read the source code from the BOTTOM UP (from the last input pattern to the first). Then you may
 /// want to look at [`any_with_bools`].
+/// 
+/// $until_major_minor is EXCLUSIVE ("open range"), so only any version LOWER than
+/// $until_major_minor is considered.
+///
+/// Unfortunately, `rustversion` crate doesn't support version notations like `1.71.0-nightly`.
+/// Hence we have a separate `nightly` flag. That also helps when troubleshooting, since `nightly`
+/// version depends on when it was updated the last time...
 macro_rules! any {
     // TODO CHECK: The following variant requires $until_major_minor NOT to be an underscore _.
     // Otherwise add two new variants, or use the other (shortcut) variants.
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt,
     _, $until_major_minor:tt) => {
+        validate_any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, false, $until_major_minor);
         any_with_bools!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, false, $until_major_minor);
     };
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt,
     nightly, $until_major_minor:tt) => {
+        validate_any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, true, $until_major_minor);
         any_with_bools!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, true, $until_major_minor);
     };
 
@@ -220,34 +229,24 @@ macro_rules! any_clippy {
     }
 }
 
+macro_rules! validate_major_minor {
+    ($major_minor:literal) => {
+        const _: f32 = $major_minor;
+    }
+}
+
 /// Validate the input (as it's expected by [`any`]. It excludes validation that is done by [`any`]
 /// itself.
 macro_rules! validate_any {
-    // $until_major_minor is EXCLUSIVE ("open range"), so only any version LOWER than
-    // $until_major_minor is considered.
-    //
-    // Ensure that $since_major_minor is lower than $until_major_minor. This does NOT validate it.
-    //
-    // Unfortunately, `rustversion` crate doesn't support version notations like `1.71.0-nightly`.
-    // Hence we have a separate `nightly` flag. That also helps when troubleshooting, since
-    // `nightly` version depends on when it was updated the last time...
-    //
-    //@TODO try (along with $deprecated_msg): `:literal` wherever possible:
-    //
-    // ($lint_prefix:tt, $lint_name:tt, $since_major_minor:literal, $until_major_minor:literal)
-    //
-    // OR:
-    //
-    // ($lint_prefix:tt, $lint_name:tt, $since_major:literal.$since_minor:literal,
-    // $until_major:literal.$until_minor:literal)
-    ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $_nightly_or_underscore:tt, $until_major_minor:tt) => {
-        validate_any!(
-            $lint_prefix,
-            $lint_name,
-            $default,
-            $deprecated_msg,
-            $since_major_minor
-        );
+    ($_lint_prefix:tt, $_lint_name:tt, $_default:tt, $_deprecated_msg:tt, $since_major_minor:tt, $_nightly_or_underscore:tt, _) => {
+        validate_major_minor!($since_major_minor);
+    };
+    ($_lint_prefix:tt, $_lint_name:tt, $_default:tt, $_deprecated_msg:tt, $since_major_minor:tt, $_nightly_or_underscore:tt, $until_major_minor:tt) => {
+        validate_major_minor!($since_major_minor);
+        validate_major_minor!($until_major_minor);
+        const _: () = {
+            assert!($since_major_minor <= $until_major_minor);
+        };
     };
 }
 
