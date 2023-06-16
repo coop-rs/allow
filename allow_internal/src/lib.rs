@@ -3,7 +3,7 @@
 #![deny(missing_docs)]
 
 use proc_macro::{Delimiter, Group, Ident, Literal, Span, TokenStream, TokenTree};
-use std::{iter::FromIterator, str::FromStr}; // TODO remove if we upgrade Rust edition
+use std::{fmt::Display, iter::FromIterator, str::FromStr}; // TODO remove if we upgrade Rust edition
 
 mod auxiliary;
 mod proc_builder;
@@ -167,12 +167,12 @@ enum LintDefault {
     Warn,
     Deny,
 }
-impl ToString for LintDefault {
-    fn to_string(&self) -> String {
+impl LintDefault {
+    fn to_str(&self) -> &str {
         match self {
-            Self::Allowed => "allowed".to_owned(),
-            Self::Warn => "warn".to_owned(),
-            Self::Deny => "deny".to_owned(),
+            Self::Allowed => "allowed",
+            Self::Warn => "warn",
+            Self::Deny => "deny",
         }
     }
 }
@@ -186,6 +186,11 @@ impl FromStr for LintDefault {
             "deny" => Ok(Self::Deny),
             other => Err(other.to_owned()),
         }
+    }
+}
+impl Display for LintDefault {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.to_str())
     }
 }
 
@@ -337,7 +342,7 @@ fn parse_properties(
 ) -> AllowMacroProperties {
     let (lint_name, lint_name_token_tree) = parse_ident(token_trees, true, "lint name");
 
-    let default = parse_literal(token_trees, true, "default");
+    let (default, _) = parse_ident(token_trees, true, "default");
     let default = if is_rustc {
         match default.parse::<LintDefault>() {
             Ok(default) => Some(default),
@@ -345,8 +350,8 @@ fn parse_properties(
         }
     } else {
         assert!(
-            default == "\"\"",
-            "Expecting a (clippy|rustdoc) lint default to be blank, but found: {}.",
+            default == "_",
+            "Expecting a (clippy|rustdoc) lint default to be an underscore _, but found: {}.",
             default
         );
         None
@@ -377,10 +382,10 @@ fn parse_properties(
     }
 }
 
-/// Generate the documentation text and the whole target attribute macro. The parameter `input`
-/// (stream) does NOT contain the lint prefix. It contains all fields accepted by
-/// [`parse_properties`] (starting with the lint name). The same as the input to macro_rules
-/// [`::allow_prefixed::any`] after it accepts `ALL_PARAMS, clippy`.
+/// Generate the documentation text and the whole target attribute macro to allow relevant
+/// `clippy::` lint. The parameter `input` (stream) does NOT contain the lint prefix. It contains
+/// all fields accepted by [`parse_properties`] (starting with the lint name). The same as the input
+/// to macro_rules [`::allow_prefixed::any_with_nightly_as_bool`] after it accepts `ALL_PARAMS, clippy`.
 #[proc_macro]
 pub fn doc_and_attrib_macro_clippy(input: TokenStream) -> TokenStream {
     let properties = parse_properties(&mut input.clone().into_iter(), false);
@@ -412,13 +417,37 @@ pub fn doc_and_attrib_macro_clippy(input: TokenStream) -> TokenStream {
         "https://rust-lang.github.io/rust-clippy/master/index.html#".to_owned()
     } else {
         format!(
-            "https://rust-lang.github.io/rust-clippy/rust-{}/index.html#",
+            "https://rust-lang.github.io/rust-clippy/rust-{}.0/index.html#",
             properties.since_major_minor
         )
     };
     let doc = format!(
         "Alias to `#[allow(clippy::{})]`. See {}/{}.",
         properties.lint_name, clippy_base, properties.lint_name
+    );
+    pass_through_deprecated_attrib_macro(Some("clippy"), properties, &doc)
+}
+
+/// Like [`doc_and_attrib_macro_clippy`], but for `rustc` ("standard", prefixless) lints.
+#[proc_macro]
+pub fn doc_and_attrib_macro_rustc(input: TokenStream) -> TokenStream {
+    let properties = parse_properties(&mut input.clone().into_iter(), true);
+    let rustc_base = "https://doc.rust-lang.org/nightly/rustc/lints/listing";
+
+    let mut lint_name_with_hyphens = String::with_capacity(properties.lint_name.len());
+    lint_name_with_hyphens.extend(
+        properties
+            .lint_name
+            .chars()
+            .map(|c| if c == '_' { '-' } else { c }),
+    );
+
+    assert!(properties.default.is_some(), "Allow macro definition for rustc (\"standard\", prefixless) lint {} require default applicability. And this should have been checked already.", properties.lint_name);
+    let default = properties.default.as_ref().unwrap();
+
+    let doc = format!(
+        "Alias to `#[allow({})]`. See {}/{}-by-default.html#{}.",
+        properties.lint_name, rustc_base, default, lint_name_with_hyphens
     );
     pass_through_deprecated_attrib_macro(Some("clippy"), properties, &doc)
 }

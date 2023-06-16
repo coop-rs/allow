@@ -289,7 +289,9 @@ macro_rules! generate_allow_attribute_macro_internal {
 
 // absolute_paths_not_starting_with_crate was in edition 2015 only (and we require 2018+).
 //#[rustversion::since(1.45.0)] standard_lint!(box_pointers);
-standard_lint!(box_pointers);
+any!(rustc, box_pointers, allowed, "", 1.45);
+//standard_lint!(box_pointers);
+
 // elided_lifetimes_in_paths - at crate level only
 standard_lint!(explicit_outlives_requirements);
 standard_lint_nightly!(ffi_unwind_calls);
@@ -491,7 +493,7 @@ prefixed_lint_versioned!(1.52, rustdoc, unescaped_backticks);
 prefixed_lint!(clippy, absurd_extreme_comparisons);
 
 //prefixed_lint_versioned!(1.64, clippy, alloc_instead_of_core);
-any!(clippy, alloc_instead_of_core, "", "", 1.64);
+any!(clippy, alloc_instead_of_core, _, "", 1.64);
 // @TODO try with "nightly" vs. nightly
 //
 // any!(clippy, alloc_instead_of_core, "", "", "nightly");
