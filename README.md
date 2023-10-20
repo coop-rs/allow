@@ -139,6 +139,9 @@ See also [coop-rs/allow > issues](https://github.com/coop-rs/allow/issues).
 - [Partial stabilization of once_cell](https://github.com/rust-lang/rust/pull/105587)
 - [standard lazy types](https://github.com/rust-lang/rfcs/pull/2788)
 - [`concat_idents`](https://github.com/rust-lang/rust/issues/29599)
+- [Support macro expansion inside attribute](https://github.com/rust-lang/rust-analyzer/issues/8092)
+- [`#[deny(unknown_lints)]` doesn't apply to code from macros from external
+  crates](https://github.com/rust-lang/rust/issues/109881)
 
 ## Efficient proc macros
 
