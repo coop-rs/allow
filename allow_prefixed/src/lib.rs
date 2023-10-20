@@ -288,16 +288,16 @@ macro_rules! generate_allow_attribute_macro_internal {
 // 1. Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/allowed-by-default.html
 
 // absolute_paths_not_starting_with_crate was in edition 2015 only (and we require 2018+).
-//#[rustversion::since(1.45.0)] standard_lint!(box_pointers);
-any!(rustc, box_pointers, allowed, "", 1.45);
-//standard_lint!(box_pointers);
+
+//any!(rustc, box_pointers, allowed, _, 1.45);
+standard_lint_allowed!(box_pointers);
 
 // elided_lifetimes_in_paths - at crate level only
-standard_lint!(explicit_outlives_requirements);
-standard_lint_nightly!(ffi_unwind_calls);
-standard_lint_nightly!(fuzzy_provenance_casts);
-standard_lint!(keyword_idents);
-standard_lint!(let_underscore_drop);
+standard_lint_allowed!(explicit_outlives_requirements);
+standard_lint_allowed_nightly!(ffi_unwind_calls);
+standard_lint_allowed_nightly!(fuzzy_provenance_casts);
+standard_lint_allowed!(keyword_idents);
+standard_lint_allowed!(let_underscore_drop);
 standard_lint_nightly!(lossy_provenance_casts);
 standard_lint!(macro_use_extern_crate);
 standard_lint!(meta_variable_misuse);
@@ -309,31 +309,31 @@ standard_lint_nightly!(multiple_supertrait_upcastable);
 standard_lint_nightly!(must_not_suspend);
 // non_ascii_idents - at crate level only
 standard_lint_nightly!(non_exhaustive_omitted_patterns);
-standard_lint!(noop_method_call);
-standard_lint!(pointer_structural_match);
-standard_lint!(rust_2021_incompatible_closure_captures);
-standard_lint!(rust_2021_incompatible_or_patterns);
+standard_lint_allowed!(noop_method_call);
+standard_lint_allowed!(pointer_structural_match);
+standard_lint_allowed!(rust_2021_incompatible_closure_captures);
+standard_lint_allowed!(rust_2021_incompatible_or_patterns);
 // rust_2021_prefixes_incompatible_syntax - at crate level only
-standard_lint!(rust_2021_prelude_collisions);
-standard_lint!(single_use_lifetimes);
-standard_lint!(trivial_casts);
-standard_lint!(trivial_numeric_casts);
-standard_lint!(unreachable_pub);
-standard_lint!(unsafe_code);
+standard_lint_allowed!(rust_2021_prelude_collisions);
+standard_lint_allowed!(single_use_lifetimes);
+standard_lint_allowed!(trivial_casts);
+standard_lint_allowed!(trivial_numeric_casts);
+standard_lint_allowed!(unreachable_pub);
+standard_lint_allowed!(unsafe_code);
 
-standard_lint_versioned!(1.52, unsafe_op_in_unsafe_fn); // According to https://github.com/rust-lang/rust/pull/79208 it was stabilized in 1.52.0
+standard_lint_allowed_from!(unsafe_op_in_unsafe_fn, 1.52); // According to https://github.com/rust-lang/rust/pull/79208 it was stabilized in 1.52.0
 
 // unstable_features - deprecated
 //
 // unused_crate_dependencies - at crate level only
-standard_lint!(unused_extern_crates);
-standard_lint!(unused_import_braces);
-standard_lint!(unused_lifetimes);
-standard_lint!(unused_macro_rules);
-standard_lint!(unused_qualifications);
-standard_lint!(unused_results);
-standard_lint!(unused_tuple_struct_fields);
-standard_lint!(variant_size_differences);
+standard_lint_allowed!(unused_extern_crates);
+standard_lint_allowed!(unused_import_braces);
+standard_lint_allowed!(unused_lifetimes);
+standard_lint_allowed!(unused_macro_rules);
+standard_lint_allowed!(unused_qualifications);
+standard_lint_allowed!(unused_results);
+standard_lint_allowed!(unused_tuple_struct_fields);
+standard_lint_allowed!(variant_size_differences);
 
 // 2. Based on https://doc.rust-lang.org/nightly/rustc/lints/listing/warn-by-default.html
 standard_lint_nightly!(ambiguous_glob_reexports);

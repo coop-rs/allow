@@ -1,12 +1,3 @@
-macro_rules! standard_lint {
-    // The `const _` is to check that the lint name is valid (thanks to `#![deny(unknown_lints)]` in
-    // `lib.rs`). It gets checked with `cargo check`.
-    ($lint_name:tt) => {
-        #[allow($lint_name)]
-        const _: () = ();
-        ::allow_internal::generate_allow_attribute_macro_standard!($lint_name);
-    };
-}
 macro_rules! prefixed_lint {
     // The lint existence check below can't be generated from macro_rules!, because we need to
     // concatenate the lint prefix and the lint name. (We can't use `paste` crate, as that can
@@ -91,20 +82,6 @@ macro_rules! any_with_bools {
             $not_anymore);
     };
 
-    /*($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, _, $not_yet:literal) => {
-        any_with_bools!(
-            $lint_prefix,
-            $lint_name,
-            $default,
-            $deprecated_msg,
-            $since_major_minor,
-            $nightly,
-            "",
-            $not_yet,
-            false // not deprecated/discontinued yet (but potentially not available yet, either)
-        );
-    };*/
-
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, _, $not_yet:literal) => {
         any_with_bools!(
             $lint_prefix,
@@ -145,6 +122,17 @@ macro_rules! any_with_bools {
         );
     };
 
+    ($lint_prefix:tt, $lint_name:tt, $default:tt, _, $since_major_minor:tt, $nightly:literal, $until_major_minor:tt) => {
+        any_with_bools!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            "", // This is NOT an underscore, but an empty string, so that the proc macro can expect a literal.
+            $since_major_minor,
+            $nightly,
+            $until_major_minor
+        );
+    };
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly:literal, $until_major_minor:tt) => {
         #[rustversion::not(since($since_major_minor))]
         any_with_bools!(
@@ -181,7 +169,7 @@ macro_rules! any_with_bools {
 ///
 /// Read the source code from the BOTTOM UP (from the last input pattern to the first). Then you may
 /// want to look at [`any_with_bools`].
-/// 
+///
 /// $until_major_minor is EXCLUSIVE ("open range"), so only any version LOWER than
 /// $until_major_minor is considered.
 ///
@@ -193,30 +181,77 @@ macro_rules! any {
     // Otherwise add two new variants, or use the other (shortcut) variants.
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt,
     _, $until_major_minor:tt) => {
-        validate_any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, false, $until_major_minor);
-        any_with_bools!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, false, $until_major_minor);
+        validate_any!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            $deprecated_msg,
+            $since_major_minor,
+            false,
+            $until_major_minor
+        );
+        any_with_bools!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            $deprecated_msg,
+            $since_major_minor,
+            false,
+            $until_major_minor
+        );
     };
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt,
     nightly, $until_major_minor:tt) => {
-        validate_any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, true, $until_major_minor);
-        any_with_bools!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, true, $until_major_minor);
+        validate_any!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            $deprecated_msg,
+            $since_major_minor,
+            true,
+            $until_major_minor
+        );
+        any_with_bools!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            $deprecated_msg,
+            $since_major_minor,
+            true,
+            $until_major_minor
+        );
     };
 
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt, $nightly_or_underscore:tt) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, $nightly_or_underscore, _);
+        any!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            $deprecated_msg,
+            $since_major_minor,
+            $nightly_or_underscore,
+            _
+        );
     };
 
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt, $since_major_minor:tt) => {
-        any!($lint_prefix, $lint_name, $default, $deprecated_msg, $since_major_minor, _);
+        any!(
+            $lint_prefix,
+            $lint_name,
+            $default,
+            $deprecated_msg,
+            $since_major_minor,
+            _
+        );
     };
     ($lint_prefix:tt, $lint_name:tt, $default:tt, $deprecated_msg:tt) => {
         any!($lint_prefix, $lint_name, $default, $deprecated_msg, 1.45, _);
     };
     ($lint_prefix:tt, $lint_name:tt, $default:tt) => {
-        any!($lint_prefix, $lint_name, $default, _, 1.45, );
+        any!($lint_prefix, $lint_name, $default, _, 1.45,);
     };
     ($lint_prefix:tt, $lint_name:tt) => {
-        any!($lint_prefix, $lint_name, _, _, 1.45, );
+        any!($lint_prefix, $lint_name, _, _, 1.45,);
     };
 }
 
@@ -232,7 +267,7 @@ macro_rules! any_clippy {
 macro_rules! validate_major_minor {
     ($major_minor:literal) => {
         const _: f32 = $major_minor;
-    }
+    };
 }
 
 /// Validate the input (as it's expected by [`any`]. It excludes validation that is done by [`any`]
@@ -256,6 +291,51 @@ macro_rules! rustdoc {
     };
 }
 rustdoc!(bufo);
+
+macro_rules! standard_lint {
+    ($_:tt) => {};
+}
+macro_rules! standard_lint_allowed {
+    // The `const _` is to check that the lint name is valid (thanks to `#![deny(unknown_lints)]` in
+    // `lib.rs`). It gets checked with `cargo check`.
+    ($lint_name:tt) => {
+        #[allow($lint_name)]
+        const _: () = ();
+        any!(rustc, $lint_name, allowed, _, 1.45);
+    };
+}
+
+macro_rules! standard_lint_allowed_from {
+    ($lint_name:tt, $since_major_minor:tt) => {
+        #[allow($lint_name)]
+        const _: () = ();
+        any!(rustc, $lint_name, allowed, _, $since_major_minor);
+    };
+}
+
+macro_rules! standard_lint_allowed_from_to {
+    ($lint_name:tt, $since_major_minor:tt, $until_major_minor:tt) => {
+        #[allow($lint_name)]
+        const _: () = ();
+        any!(
+            rustc,
+            $lint_name,
+            allowed,
+            _,
+            $since_major_minor,
+            _,
+            $until_major_minor
+        );
+    };
+}
+
+macro_rules! standard_lint_allowed_nightly {
+    ($lint_name:tt) => {
+        #[allow($lint_name)]
+        const _: () = ();
+        any!(rustc, $lint_name, allowed, _, 1.45, nightly);
+    };
+}
 
 macro_rules! standard_lint_versioned {
     // We can't match major.minor.patch in macro_rules. So far all lints started at patch version
